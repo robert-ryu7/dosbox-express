@@ -1,16 +1,27 @@
-import { useState } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
 import preactLogo from "./assets/preact.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./app.css";
+import { gamesChangedSubscription } from "./subscriptions";
 
 export function App<FC>() {
-  const [greetMsg, setGreetMsg] = useState<string>("");
-  const [name, setName] = useState<string>("");
+  const [games, setGames] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
 
-  const greet = async () => {
+  const createGame = async () => {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+    await invoke("create_game", { title, configPath: "./" });
   };
+
+  useLayoutEffect(() => {
+    const handler = async () => {
+      setGames(await invoke("get_games"));
+    };
+
+    handler();
+
+    return gamesChangedSubscription.subscribe(handler);
+  }, []);
 
   return (
     <div class="container">
@@ -32,16 +43,16 @@ export function App<FC>() {
       <div class="row">
         <div>
           <input
-            id="greet-input"
-            onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="Enter a name..."
+            id="create-game-input"
+            onChange={(e) => setTitle(e.currentTarget.value)}
+            placeholder="Enter game title..."
           />
-          <button type="button" onClick={() => greet()}>
-            Greet
+          <button type="button" onClick={() => createGame()}>
+            Create Game
           </button>
         </div>
       </div>
-      <p>{greetMsg}</p>
+      <pre>{games ? JSON.stringify(games, null, 2) : "\u00A0"}</pre>
     </div>
   );
 }
