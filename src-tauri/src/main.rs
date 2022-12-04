@@ -9,6 +9,7 @@ use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dosbox_express::models::{Game, NewGame};
 use dosbox_express::schema::games::dsl::games;
+use dosbox_express::schema::games::id;
 use dotenvy::dotenv;
 use std::env;
 use std::sync::Mutex;
@@ -59,6 +60,30 @@ fn get_games(state: tauri::State<'_, Mutex<SqliteConnection>>) -> Vec<Game> {
     games.load::<Game>(connection).expect("Error loading games")
 }
 
+#[tauri::command]
+fn delete_games(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    ids: Vec<i32>,
+) -> () {
+    let mut connection = state
+        .lock()
+        .expect("Database connection was not found in state");
+    let connection = &mut *connection;
+
+    diesel::delete(games.filter(id.eq_any(ids)))
+        .execute(connection)
+        .expect("Error deleting games");
+
+    app.emit_all(
+        "games_changed",
+        GamesChangedPayload {
+            reason: "delete_games".into(),
+        },
+    )
+    .unwrap();
+}
+
 fn main() {
     dotenv().ok();
 
@@ -71,7 +96,11 @@ fn main() {
 
     tauri::Builder::default()
         .manage(std::sync::Mutex::new(connection))
-        .invoke_handler(tauri::generate_handler![create_game, get_games])
+        .invoke_handler(tauri::generate_handler![
+            create_game,
+            get_games,
+            delete_games
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

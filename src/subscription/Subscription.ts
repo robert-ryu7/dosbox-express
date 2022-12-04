@@ -1,4 +1,4 @@
-type Handler<T> = (value: T) => void;
+import { Handler, Unsubscribe } from "./types";
 
 class Subscription<T> {
   private _lastValue?: T;
@@ -8,7 +8,7 @@ class Subscription<T> {
     this.handlers = [];
   }
 
-  public subscribe(handler: Handler<T>) {
+  public subscribe(handler: Handler<T>): Unsubscribe {
     this.handlers.push(handler);
 
     return () => {
@@ -18,11 +18,8 @@ class Subscription<T> {
 
   public dispatch(value: T) {
     this._lastValue = value;
-    console.debug(
-      `Subscription "${this.name}" is dispatching to ${this.handlers.length} handlers`
-    );
-    for (var i = 0; i < this.handlers.length; i++)
-      this.handlers[i].apply(null, [value]);
+    console.debug(`Subscription "${this.name}" is dispatching to ${this.handlers.length} handlers`);
+    for (var i = 0; i < this.handlers.length; i++) this.handlers[i].apply(null, [value]);
   }
 
   public get lastValue() {

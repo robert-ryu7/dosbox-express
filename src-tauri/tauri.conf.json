@@ -55,11 +55,11 @@
     },
     "windows": [
       {
-        "fullscreen": false,
-        "height": 600,
-        "resizable": true,
-        "title": "dosbox-express",
-        "width": 800
+        "title": "DOSBox Express",
+        "minWidth": 640,
+        "minHeight": 480,
+        "width": 640,
+        "height": 480
       }
     ]
   }
