@@ -12,7 +12,10 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "fs": {
+        "scope": ["$RESOURCE/base.conf"]
+      }
     },
     "bundle": {
       "active": true,
@@ -38,7 +41,9 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "dosbox"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -58,7 +63,7 @@
         "title": "DOSBox Express",
         "minWidth": 640,
         "minHeight": 480,
-        "width": 640,
+        "width": 720,
         "height": 480
       }
     ]

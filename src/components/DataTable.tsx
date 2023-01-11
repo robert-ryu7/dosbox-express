@@ -133,6 +133,7 @@ const DataTable = <T extends Record<string, unknown>, K>({
               (column, index) =>
                 `${Math.max(column.width + (dragState?.index === index ? dragState.offset : 0), minColumnWidth)}px`
             )
+            .concat("1fr")
             .join(" "),
         }}
       >
@@ -143,6 +144,7 @@ const DataTable = <T extends Record<string, unknown>, K>({
                 <div className="data-table__cell-content">{column.heading}</div>
               </div>
             ))}
+            <div className="data-table__cell" />
           </div>
         </div>
         <div
@@ -187,6 +189,7 @@ const DataTable = <T extends Record<string, unknown>, K>({
                         <div className="data-table__cell-content">{String(item[column.key])}</div>
                       </div>
                     ))}
+                    <div className="data-table__cell" />
                   </div>
                 );
               })}

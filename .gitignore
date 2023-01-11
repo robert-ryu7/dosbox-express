@@ -26,3 +26,5 @@ dist-ssr
 # Project specific files
 .env
 db.sqlite
+src-tauri/dosbox
+notes

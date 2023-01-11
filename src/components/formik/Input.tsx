@@ -12,8 +12,8 @@ type InputProps = {
 };
 
 const Input = ({ label, id, name, className, placeholder, disabled, after }: InputProps) => {
-  const [field, meta, helpers] = useField(name);
-  console.log(meta);
+  const [field, meta] = useField(name);
+
   return (
     <div className={clsx("input", meta.touched && meta.error && "error", className)}>
       <label for={id}>{label}</label>

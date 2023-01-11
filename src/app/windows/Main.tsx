@@ -1,40 +1,32 @@
-import { useLayoutEffect, useMemo, useState } from "preact/hooks";
+import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { invoke } from "@tauri-apps/api";
-import { WebviewWindow } from "@tauri-apps/api/window";
-import { confirm } from "@tauri-apps/api/dialog";
+import { message, confirm } from "@tauri-apps/api/dialog";
 
-import gamesChangedSubscription from "../subscription/gamesChangedSubscription";
-import { Game, WindowProps } from "../types";
-import Button from "../components/Button";
-import useStorage from "../hooks/useStorage";
-import mainColumnsStorage from "../storage/mainColumnsStorage";
-import DataTable, { DataTableColumn } from "../components/DataTable";
+import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
+import { Game, WindowProps } from "../../types";
+import Button from "../../components/Button";
+import useStorage from "../../hooks/useStorage";
+import mainColumnsStorage from "../../storage/mainColumnsStorage";
+import DataTable, { DataTableColumn } from "../../components/DataTable";
+import AddGame from "../dialogs/AddGame";
+import { useRunningGames } from "../providers/RunningGamesProvider";
 
 const getGameKey = (game: Game) => game.id;
 
-const Main = (props: WindowProps) => {
+const Main = (_: WindowProps) => {
+  const runningGames = useRunningGames();
+  const addGameRef = useRef<HTMLDialogElement>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
   const columnsConfig = useStorage(mainColumnsStorage);
   const columns = useMemo<DataTableColumn[]>(
     () => [
-      { key: "id", heading: "#", width: 50, ...columnsConfig?.id },
-      { key: "title", heading: "Title", width: 150, ...columnsConfig?.title },
-      { key: "config_path", heading: "Config path", width: 425, ...columnsConfig?.config_path },
+      { key: "id", heading: "#", width: 30, ...columnsConfig?.id },
+      { key: "title", heading: "Title", width: 180, ...columnsConfig?.title },
+      { key: "config_path", heading: "Config path", width: 320, ...columnsConfig?.config_path },
     ],
     [columnsConfig]
   );
-
-  const addGame = async () => {
-    const webview = new WebviewWindow("addGame", {
-      title: "DOSBox Express - Add Game",
-      minWidth: 480,
-      minHeight: 160,
-      width: 480,
-      height: 160,
-      url: "add-game",
-    });
-  };
 
   useLayoutEffect(() => {
     const handler = async () => {
@@ -104,9 +96,22 @@ const Main = (props: WindowProps) => {
             Delete
           </Button>
           <Button disabled={selection.length !== 1}>Edit</Button>
-          <Button onClick={() => addGame()}>Add</Button>
+          <Button onClick={() => addGameRef.current?.showModal?.()}>Add</Button>
+          <Button
+            disabled={selection.length !== 1 || runningGames.includes(selection[0])}
+            onClick={async () => {
+              try {
+                await invoke("start_game", { gameId: selection[0] });
+              } catch (err: unknown) {
+                message(String(err), { type: "error" });
+              }
+            }}
+          >
+            Start
+          </Button>
         </div>
       </div>
+      <AddGame dialogRef={addGameRef} />
     </>
   );
 };
