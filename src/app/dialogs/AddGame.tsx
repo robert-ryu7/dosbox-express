@@ -26,11 +26,11 @@ const validationSchema: Yup.SchemaOf<Values> = Yup.object({
 });
 
 type AddGameProps = {
-  dialogRef: Ref<HTMLDialogElement>;
+  show: boolean;
+  onHide: () => void;
 };
 
 const AddGame = (props: AddGameProps) => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const formik = useFormik<Values>({
     initialValues,
     validationSchema,
@@ -38,21 +38,16 @@ const AddGame = (props: AddGameProps) => {
     onSubmit: async (values) => {
       // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
       await invoke("create_game", values);
-      dialogRef.current?.close();
+      props.onHide();
     },
   });
 
   useEffect(() => {
-    const callback = () => formik.resetForm();
-    const observer = new MutationObserver(callback);
-    observer.observe(dialogRef.current!, { attributes: true });
-    callback();
-
-    return () => observer.disconnect();
-  }, []);
+    if (props.show) formik.resetForm();
+  }, [props.show]);
 
   return (
-    <Dialog dialogRef={composeRefs(dialogRef, props.dialogRef)}>
+    <Dialog show={props.show} onHide={props.onHide}>
       <FormikContext.Provider value={formik}>
         <form
           autoComplete="off"
@@ -110,7 +105,7 @@ const AddGame = (props: AddGameProps) => {
             class="outset"
             style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px; padding: 4px; border-width: var(--border-width) 0 0 0;"
           >
-            <Button type="button" onClick={() => dialogRef.current?.close()}>
+            <Button type="button" onClick={() => props.onHide()}>
               Cancel
             </Button>
             <Button type="submit">OK</Button>

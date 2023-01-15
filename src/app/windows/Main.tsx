@@ -15,7 +15,7 @@ const getGameKey = (game: Game) => game.id;
 
 const Main = (_: WindowProps) => {
   const runningGames = useRunningGames();
-  const addGameRef = useRef<HTMLDialogElement>(null);
+  const [showAddGameDialog, setShowAddGameDialog] = useState<boolean>(false);
   const [games, setGames] = useState<Game[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
   const columnsConfig = useStorage(mainColumnsStorage);
@@ -96,7 +96,7 @@ const Main = (_: WindowProps) => {
             Delete
           </Button>
           <Button disabled={selection.length !== 1}>Edit</Button>
-          <Button onClick={() => addGameRef.current?.showModal?.()}>Add</Button>
+          <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
           <Button
             disabled={selection.length !== 1 || runningGames.includes(selection[0])}
             onClick={async () => {
@@ -111,7 +111,7 @@ const Main = (_: WindowProps) => {
           </Button>
         </div>
       </div>
-      <AddGame dialogRef={addGameRef} />
+      <AddGame show={showAddGameDialog} onHide={() => setShowAddGameDialog(false)} />
     </>
   );
 };
