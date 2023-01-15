@@ -25,7 +25,7 @@ const Dialog = (props: DialogProps) => {
   }, [props.show]);
 
   return (
-    <dialog class="dialog" ref={elementRef}>
+    <dialog className="dialog" ref={elementRef}>
       {props.children}
     </dialog>
   );

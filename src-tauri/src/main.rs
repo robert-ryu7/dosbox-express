@@ -22,6 +22,33 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 struct RunningGames(Mutex<HashMap<i32, u32>>);
 
+fn get_dosbox_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    let path = app
+        .path_resolver()
+        .resolve_resource("dosbox/dosbox.exe")
+        .ok_or("Failed to resolve DOSBox path")?;
+
+    return dunce::canonicalize(path).or_else(|err| Err(err.to_string()));
+}
+
+#[tauri::command]
+fn get_game_config(
+    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    id: i32,
+) -> Result<String, String> {
+    let mut connection = state
+        .lock()
+        .expect("Database connection was not found in state");
+    let connection = &mut *connection;
+
+    let game = games
+        .filter(dosbox_express::schema::games::id.eq(id))
+        .first::<Game>(connection)
+        .or_else(|err| Err(err.to_string()))?;
+
+    std::fs::read_to_string(game.config_path).or_else(|err| Err(err.to_string()))
+}
+
 #[tauri::command]
 fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
     return running_games
@@ -33,23 +60,13 @@ fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
         .collect();
 }
 
-fn get_dosbox_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    let path = app
-        .path_resolver()
-        .resolve_resource("dosbox/dosbox.exe")
-        .ok_or("Failed to resolve DOSBox path")?;
-
-    return dunce::canonicalize(path).or_else(|err| Err(err.to_string()));
-}
-
 #[tauri::command]
 async fn run_game(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<SqliteConnection>>,
-    handle: tauri::AppHandle,
     id: i32,
 ) -> Result<(), String> {
-    let running_games = handle.state::<RunningGames>();
+    let running_games = app.state::<RunningGames>();
     if running_games.0.lock().unwrap().contains_key(&id) {
         return Err(format!("Game with id {} has already started", id));
     }
@@ -82,7 +99,7 @@ async fn run_game(
             thread::spawn(move || {
                 let pid = popen.pid().unwrap();
                 println!("Subprocess {} has started", pid);
-                let running_games = handle.state::<RunningGames>();
+                let running_games = app.state::<RunningGames>();
                 running_games.0.lock().unwrap().insert(id, pid);
                 app.emit_all(
                     "running_games_changed",
@@ -247,6 +264,7 @@ fn main() {
         .manage(std::sync::Mutex::new(connection))
         .manage(RunningGames(Default::default()))
         .invoke_handler(tauri::generate_handler![
+            get_game_config,
             get_running_games,
             run_game,
             add_game,

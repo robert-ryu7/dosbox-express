@@ -1,9 +1,9 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import { invoke } from "@tauri-apps/api";
 import { message, confirm } from "@tauri-apps/api/dialog";
 
 import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
-import { Game, WindowProps } from "../../types";
+import { Config, Game, WindowProps } from "../../types";
 import Button from "../../components/Button";
 import useStorage from "../../hooks/useStorage";
 import mainColumnsStorage from "../../storage/mainColumnsStorage";
@@ -11,6 +11,10 @@ import DataTable, { DataTableColumn } from "../../components/DataTable";
 import AddGame from "../dialogs/AddGame";
 import { useRunningGames } from "../providers/RunningGamesProvider";
 import EditGame from "../dialogs/EditGame";
+import ConfigureGame from "../dialogs/ConfigureGame";
+import Outset from "../../components/Outset";
+import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
+import fetchGameConfig from "../../fetchers/fetchGameConfig";
 
 const getGameKey = (game: Game) => game.id;
 
@@ -18,6 +22,11 @@ const Main = (_: WindowProps) => {
   const runningGames = useRunningGames();
   const [showAddGameDialog, setShowAddGameDialog] = useState<boolean>(false);
   const [editGameDialogTarget, setEditGameDialogTarget] = useState<Game | null>(null);
+  const [configureGameDialogTarget, setConfigureGameDialogTarget] = useState<{
+    id: number;
+    baseConfig: Config;
+    gameConfig: Config;
+  } | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
   const columnsConfig = useStorage(mainColumnsStorage);
@@ -59,10 +68,7 @@ const Main = (_: WindowProps) => {
           });
         }}
       />
-      <div
-        className="outset"
-        style="flex: 0 0 auto; display: flex; gap: 2px; padding: 4px; border-width: var(--border-width) 0 0 0;"
-      >
+      <Outset style="flex: 0 0 auto; display: flex; gap: 2px; border-width: 2px 0 0 0;">
         <div
           style={{
             padding: "0 8px",
@@ -106,6 +112,21 @@ const Main = (_: WindowProps) => {
           >
             Edit
           </Button>
+          <Button
+            disabled={selection.length !== 1}
+            onClick={async () => {
+              try {
+                const id = selection[0];
+                const baseConfig = await fetchBaseConfig();
+                const gameConfig = await fetchGameConfig(id);
+                setConfigureGameDialogTarget({ id, baseConfig, gameConfig });
+              } catch (err: unknown) {
+                message(String(err), { type: "error" });
+              }
+            }}
+          >
+            Config
+          </Button>
           <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
           <Button
             disabled={selection.length !== 1 || runningGames.includes(selection[0])}
@@ -120,9 +141,12 @@ const Main = (_: WindowProps) => {
             Start
           </Button>
         </div>
-      </div>
+      </Outset>
       <AddGame show={showAddGameDialog} onHide={() => setShowAddGameDialog(false)} />
       <EditGame game={editGameDialogTarget} onHide={() => setEditGameDialogTarget(null)} />
+      {configureGameDialogTarget && (
+        <ConfigureGame game={configureGameDialogTarget} onHide={() => setConfigureGameDialogTarget(null)} />
+      )}
     </>
   );
 };

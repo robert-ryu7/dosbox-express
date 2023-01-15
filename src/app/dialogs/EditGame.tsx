@@ -7,6 +7,7 @@ import Button from "../../components/Button";
 import Input from "../../components/formik/Input";
 import Dialog from "../../components/Dialog";
 import { Game } from "../../types";
+import Outset from "../../components/Outset";
 
 type Values = {
   title: string;
@@ -52,20 +53,14 @@ const EditGame = (props: EditGameProps) => {
                 .concat(...Object.values(formik.errors).map((error) => `• ${error}`))
                 .join("\n");
 
-              message(text, {
-                title: "DOSBox Express",
-                type: "error",
-              });
+              message(text, { type: "error" });
             }
             formik.handleSubmit(e);
           }}
           action="#"
-          style="flex: 1 1 auto; display: flex; flex-direction: column;"
+          style="display: flex; flex-direction: column;"
         >
-          <div
-            class="outset"
-            style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; padding: 8px; border-width: 0 0 var(--border-width) 0;"
-          >
+          <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
             <Input name="title" id="title" label="Title" placeholder="Name of the game" />
             <Input
               name="configPath"
@@ -94,16 +89,13 @@ const EditGame = (props: EditGameProps) => {
                 </Button>
               }
             />
-          </div>
-          <div
-            class="outset"
-            style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px; padding: 4px; border-width: var(--border-width) 0 0 0;"
-          >
+          </Outset>
+          <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button type="button" onClick={() => props.onHide()}>
               Cancel
             </Button>
             <Button type="submit">OK</Button>
-          </div>
+          </Outset>
         </form>
       </FormikContext.Provider>
     </Dialog>

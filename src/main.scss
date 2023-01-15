@@ -34,6 +34,10 @@
   font-family: var(--font-family);
 }
 
+* {
+  user-select: none;
+}
+
 body {
   margin: 0;
 }
@@ -65,16 +69,19 @@ body {
   background: var(--color-scrollbar);
   border-style: solid;
   border-color: var(--color-back);
+  border-width: 2px;
   background-clip: padding-box;
 }
 
-::-webkit-scrollbar-thumb:horizontal {
-  border-width: 2px 0;
+::-webkit-scrollbar-thumb:corner-present:horizontal {
+  border-width: 2px 0 2px 2px;
 }
 
-::-webkit-scrollbar-thumb:vertical {
-  border-width: 0 2px;
+::-webkit-scrollbar-thumb:corner-present:vertical {
+  border-width: 2px 2px 0 2px;
 }
+
+// Button
 
 .button {
   background: var(--color-back);
@@ -109,53 +116,11 @@ body {
   border-color: var(--border-color-button-disabled);
 }
 
-table {
-  border-spacing: 0;
-  background: var(--color-primary);
-}
-
-td,
-th {
-  text-align: start;
-  padding: 6px 8px;
-}
-
-tbody > tr > * {
-  background: var(--color-back);
-  box-sizing: border-box;
-  border-style: solid;
-  border-width: 0 2px 0 2px;
-  border-color: var(--border-color-inset);
-}
-
-tbody > tr:first-of-type > * {
-  border-top-width: 2px;
-}
-
-tbody > tr:last-of-type > * {
-  border-bottom-width: 2px;
-}
-
-.outset {
-  border-style: solid;
-  border-width: 2px;
-  border-color: var(--border-color-outset);
-  background: var(--color-primary);
-}
-
-.inset {
-  border-style: solid;
-  border-width: 2px;
-  border-color: var(--border-color-inset);
-  background: var(--color-back);
-}
-
 // DataTable
 
 .data-table {
   overflow: hidden;
   position: relative;
-  user-select: none;
 }
 
 .data-table__table {
@@ -165,8 +130,8 @@ tbody > tr:last-of-type > * {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  color: white;
-  background-color: var(--color-back-bright);
+  color: var(--color-front);
+  background: var(--color-back-bright);
 }
 
 .data-table__head {
@@ -176,7 +141,7 @@ tbody > tr:last-of-type > * {
   z-index: 1;
   top: 0;
   min-width: 100%;
-  background-color: inherit;
+  background: inherit;
 }
 
 .data-table__body {
@@ -292,9 +257,55 @@ tbody > tr:last-of-type > * {
 
 .dialog {
   padding: 0;
+  color: var(--color-front);
+  border-color: var(--color-back);
 }
 
 .dialog::backdrop {
   background-repeat: repeat;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' viewBox='0 0 2 2'%3E%3Cpath d='M1 0h1v1H1zM0 1h1v1H0z'/%3E%3C/svg%3E");
+}
+
+// Outset
+
+.outset {
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--border-color-outset);
+  background: var(--color-primary);
+  padding: 4px;
+  overflow: hidden;
+}
+
+// Inset
+
+.inset {
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--border-color-inset);
+  background: var(--color-back-bright);
+  overflow: hidden;
+}
+
+// List
+
+.list {
+  overflow: auto;
+  height: 100%;
+}
+
+.list:focus {
+  outline: 1px dotted var(--color-front);
+  outline-offset: -2px;
+}
+
+.list__item {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 6px 8px;
+  cursor: pointer;
+
+  &--selected {
+    background: var(--color-back-brighter);
+  }
 }

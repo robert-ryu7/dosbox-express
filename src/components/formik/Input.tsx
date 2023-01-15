@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import InputBase from "../Input";
 import { useField } from "formik";
 
 type InputProps = {
@@ -15,13 +16,15 @@ const Input = ({ label, id, name, className, placeholder, disabled, after }: Inp
   const [field, meta] = useField(name);
 
   return (
-    <div className={clsx("input", meta.touched && meta.error && "error", className)}>
-      <label for={id}>{label}</label>
-      <div className="input__bottom">
-        <input type="text" id={id} placeholder={placeholder} disabled={disabled} {...field} />
-        {after}
-      </div>
-    </div>
+    <InputBase
+      className={clsx(meta.touched && meta.error && "error", className)}
+      id={id}
+      label={label}
+      placeholder={placeholder}
+      disabled={disabled}
+      after={after}
+      {...field}
+    />
   );
 };
 
