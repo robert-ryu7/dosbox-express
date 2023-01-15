@@ -5,8 +5,8 @@ import * as Yup from "yup";
 
 import Button from "../../components/Button";
 import Input from "../../components/formik/Input";
-import { useEffect } from "preact/hooks";
 import Dialog from "../../components/Dialog";
+import { Game } from "../../types";
 
 type Values = {
   title: string;
@@ -23,28 +23,25 @@ const validationSchema: Yup.SchemaOf<Values> = Yup.object({
   configPath: Yup.string().label("Config path").required(),
 });
 
-type AddGameProps = {
-  show: boolean;
+type EditGameProps = {
+  game: Game | null;
   onHide: () => void;
 };
 
-const AddGame = (props: AddGameProps) => {
+const EditGame = (props: EditGameProps) => {
   const formik = useFormik<Values>({
-    initialValues,
+    initialValues: props.game ? { title: props.game.title, configPath: props.game.config_path } : initialValues,
     validationSchema,
     validateOnMount: true,
+    enableReinitialize: true,
     onSubmit: async (values) => {
-      await invoke("add_game", values);
+      await invoke("edit_game", { ...props.game, ...values });
       props.onHide();
     },
   });
 
-  useEffect(() => {
-    if (props.show) formik.resetForm();
-  }, [props.show]);
-
   return (
-    <Dialog show={props.show} onHide={props.onHide}>
+    <Dialog show={!!props.game} onHide={props.onHide}>
       <FormikContext.Provider value={formik}>
         <form
           autoComplete="off"
@@ -113,4 +110,4 @@ const AddGame = (props: AddGameProps) => {
   );
 };
 
-export default AddGame;
+export default EditGame;

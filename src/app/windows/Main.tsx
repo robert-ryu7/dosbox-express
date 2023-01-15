@@ -10,12 +10,14 @@ import mainColumnsStorage from "../../storage/mainColumnsStorage";
 import DataTable, { DataTableColumn } from "../../components/DataTable";
 import AddGame from "../dialogs/AddGame";
 import { useRunningGames } from "../providers/RunningGamesProvider";
+import EditGame from "../dialogs/EditGame";
 
 const getGameKey = (game: Game) => game.id;
 
 const Main = (_: WindowProps) => {
   const runningGames = useRunningGames();
   const [showAddGameDialog, setShowAddGameDialog] = useState<boolean>(false);
+  const [editGameDialogTarget, setEditGameDialogTarget] = useState<Game | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
   const columnsConfig = useStorage(mainColumnsStorage);
@@ -95,13 +97,21 @@ const Main = (_: WindowProps) => {
           >
             Delete
           </Button>
-          <Button disabled={selection.length !== 1}>Edit</Button>
+          <Button
+            disabled={selection.length !== 1}
+            onClick={() => {
+              const game = games.find((game) => game.id === selection[0]);
+              if (game) setEditGameDialogTarget(game);
+            }}
+          >
+            Edit
+          </Button>
           <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
           <Button
             disabled={selection.length !== 1 || runningGames.includes(selection[0])}
             onClick={async () => {
               try {
-                await invoke("start_game", { gameId: selection[0] });
+                await invoke("run_game", { id: selection[0] });
               } catch (err: unknown) {
                 message(String(err), { type: "error" });
               }
@@ -112,6 +122,7 @@ const Main = (_: WindowProps) => {
         </div>
       </div>
       <AddGame show={showAddGameDialog} onHide={() => setShowAddGameDialog(false)} />
+      <EditGame game={editGameDialogTarget} onHide={() => setEditGameDialogTarget(null)} />
     </>
   );
 };

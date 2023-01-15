@@ -11,7 +11,6 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@seznam/compose-react-refs": "^1.0.6",
     "@tauri-apps/api": "^1.1.0",
     "clsx": "^1.2.1",
     "formik": "^2.2.9",
