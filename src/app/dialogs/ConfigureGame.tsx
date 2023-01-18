@@ -6,6 +6,8 @@ import List from "../../components/List";
 import Outset from "../../components/Outset";
 import Input from "../../components/Input";
 import { Config } from "../../types";
+import TextArea from "../../components/TextArea";
+import stringifyConfig from "../../common/stringifyConfig";
 
 type ConfigureGameProps = {
   game: {
@@ -135,7 +137,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                               ...s.categories[category],
                               settings: {
                                 ...s.categories[category].settings,
-                                [name]: (event.target as HTMLInputElement)!.value,
+                                [name]: (event.target as HTMLInputElement).value,
                               },
                             },
                           },
@@ -148,15 +150,29 @@ const ConfigureGame = (props: ConfigureGameProps) => {
           </div>
         </div>
         <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">
-          {/* TODO: Implement Textarea component. */}
-          <div>Autoexec</div>
-          <Inset style="white-space: pre; overflow: auto;">{config.autoexec}</Inset>
+          <TextArea
+            name="autoexec"
+            id="autoexec"
+            label="Autoexec"
+            value={config.autoexec}
+            onChange={(event) => {
+              setConfig((s) => ({ ...s, autoexec: (event.target as HTMLTextAreaElement).value }));
+            }}
+          />
         </Outset>
         <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
           <Button type="button" onClick={() => props.onHide()}>
             Cancel
           </Button>
-          <Button type="submit">OK</Button>
+          <Button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(stringifyConfig(config));
+              console.log(stringifyConfig(config));
+            }}
+          >
+            OK
+          </Button>
         </Outset>
       </div>
     </Dialog>
