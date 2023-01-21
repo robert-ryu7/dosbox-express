@@ -12,7 +12,7 @@ const TextArea = ({ id, label, className, after, ...rest }: TextAreaProps) => {
     <div className={clsx("text-area", className)}>
       <label for={id}>{label}</label>
       <div className="text-area__bottom">
-        <textarea id={id} {...rest} />
+        <textarea id={id} spellcheck={false} {...rest} />
         {after}
       </div>
     </div>

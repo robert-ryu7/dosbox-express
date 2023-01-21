@@ -92,9 +92,16 @@ body {
   padding: 1px;
   border: none;
   position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 .button__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-back);
   background: var(--color-button);
   border-width: 2px;
@@ -339,6 +346,7 @@ body {
   border-color: var(--border-color-inset);
   outline-offset: -4px;
   resize: none;
+  white-space: nowrap;
 }
 
 .text-area textarea:focus {
@@ -355,4 +363,15 @@ body {
 
 .text-area.error textarea:not(:focus) {
   outline: 1px dotted red;
+}
+
+// Divider
+
+.divider {
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--border-color-inset);
+  background: var(--color-back-bright);
+  overflow: hidden;
+  margin: 0 4px;
 }

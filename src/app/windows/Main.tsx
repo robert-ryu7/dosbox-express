@@ -34,7 +34,7 @@ const Main = (_: WindowProps) => {
     () => [
       { key: "id", heading: "#", width: 30, ...columnsConfig?.id },
       { key: "title", heading: "Title", width: 180, ...columnsConfig?.title },
-      { key: "config_path", heading: "Config path", width: 320, ...columnsConfig?.config_path },
+      { key: "config_path", heading: "Config path", width: 570, ...columnsConfig?.config_path },
     ],
     [columnsConfig]
   );
