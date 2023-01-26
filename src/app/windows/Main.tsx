@@ -3,29 +3,32 @@ import { invoke } from "@tauri-apps/api";
 import { message, confirm } from "@tauri-apps/api/dialog";
 
 import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
-import { Config, Game, WindowProps } from "../../types";
+import { Game, WindowProps } from "../../types";
 import Button from "../../components/Button";
 import useStorage from "../../hooks/useStorage";
 import mainColumnsStorage from "../../storage/mainColumnsStorage";
 import DataTable, { DataTableColumn } from "../../components/DataTable";
 import AddGame from "../dialogs/AddGame";
-import { useRunningGames } from "../providers/RunningGamesProvider";
+import { useRunningGames } from "../contexts/runningGamesContext";
 import EditGame from "../dialogs/EditGame";
 import ConfigureGame from "../dialogs/ConfigureGame";
 import Outset from "../../components/Outset";
 import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
 import fetchGameConfig from "../../fetchers/fetchGameConfig";
+import Settings from "../dialogs/Settings";
+import Divider from "../../components/Divider";
 
 const getGameKey = (game: Game) => game.id;
 
 const Main = (_: WindowProps) => {
   const runningGames = useRunningGames();
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showAddGameDialog, setShowAddGameDialog] = useState<boolean>(false);
   const [editGameDialogTarget, setEditGameDialogTarget] = useState<Game | null>(null);
   const [configureGameDialogTarget, setConfigureGameDialogTarget] = useState<{
     id: number;
-    baseConfig: Config;
-    gameConfig: Config;
+    baseConfig: string;
+    gameConfig: string;
   } | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
@@ -127,7 +130,6 @@ const Main = (_: WindowProps) => {
           >
             Config
           </Button>
-          <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
           <Button
             disabled={selection.length !== 1 || runningGames.includes(selection[0])}
             onClick={async () => {
@@ -140,12 +142,16 @@ const Main = (_: WindowProps) => {
           >
             Start
           </Button>
+          <Divider />
+          <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
+          <Button onClick={() => setShowSettings(true)}>Settings</Button>
         </div>
       </Outset>
+      {showSettings && <Settings show onHide={() => setShowSettings(false)} />}
       <AddGame show={showAddGameDialog} onHide={() => setShowAddGameDialog(false)} />
       <EditGame game={editGameDialogTarget} onHide={() => setEditGameDialogTarget(null)} />
       {configureGameDialogTarget && (
-        <ConfigureGame game={configureGameDialogTarget} onHide={() => setConfigureGameDialogTarget(null)} />
+        <ConfigureGame {...configureGameDialogTarget} onHide={() => setConfigureGameDialogTarget(null)} />
       )}
     </>
   );

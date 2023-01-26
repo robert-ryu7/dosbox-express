@@ -8,6 +8,7 @@ import Input from "../../components/formik/Input";
 import { useEffect } from "preact/hooks";
 import Dialog from "../../components/Dialog";
 import Outset from "../../components/Outset";
+import Form from "../../components/formik/Form";
 
 type Values = {
   title: string;
@@ -47,22 +48,7 @@ const AddGame = (props: AddGameProps) => {
   return (
     <Dialog show={props.show} onHide={props.onHide}>
       <FormikContext.Provider value={formik}>
-        <form
-          autoComplete="off"
-          onReset={formik.handleReset}
-          onSubmit={(e?: any) => {
-            if (!formik.isValid) {
-              let text = ["Cannot continue due to errors:"]
-                .concat(...Object.values(formik.errors).map((error) => `• ${error}`))
-                .join("\n");
-
-              message(text, { type: "error" });
-            }
-            formik.handleSubmit(e);
-          }}
-          action="#"
-          style="display: flex; flex-direction: column;"
-        >
+        <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
             <Input name="title" id="title" label="Title" placeholder="Name of the game" />
             <Input
@@ -99,7 +85,7 @@ const AddGame = (props: AddGameProps) => {
             </Button>
             <Button type="submit">OK</Button>
           </Outset>
-        </form>
+        </Form>
       </FormikContext.Provider>
     </Dialog>
   );

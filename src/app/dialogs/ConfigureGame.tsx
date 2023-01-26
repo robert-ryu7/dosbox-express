@@ -12,37 +12,46 @@ import { confirm } from "@tauri-apps/api/dialog";
 import AddCategory from "./AddCategory";
 import AddSetting from "./AddSetting";
 import Divider from "../../components/Divider";
+import { useSettings } from "../contexts/settingsContext";
+import ConfigChangesConfirmation from "./ConfigChangesConfirmation";
+import parseConfig from "../../common/parseConfig";
+import OutsetHead from "../../components/OutsetHead";
 
 type ConfigureGameProps = {
-  game: {
-    id: number;
-    baseConfig: Config;
-    gameConfig: Config;
-  };
+  id: number;
+  baseConfig: string;
+  gameConfig: string;
   onHide: () => void;
 };
 
+const resolveCategorySettings = (config: Config, baseConfig: Config, category: string) => {
+  const set = new Set<string>();
+  Object.keys(config.categories[category]?.settings ?? {}).forEach((setting) => set.add(setting));
+  Object.keys(baseConfig.categories[category]?.settings ?? {}).forEach((setting) => set.add(setting));
+  return [...set];
+};
+
 const ConfigureGame = (props: ConfigureGameProps) => {
+  const settings = useSettings();
+  const baseConfig = useMemo(() => parseConfig(props.baseConfig), [props.baseConfig]);
+  const gameConfig = useMemo(() => parseConfig(props.gameConfig), [props.gameConfig]);
   const [selection, setSelection] = useState<string[]>([]);
-  const [config, setConfig] = useState<Config>(() => JSON.parse(JSON.stringify(props.game.gameConfig)));
+  const [config, setConfig] = useState<Config>(() => JSON.parse(JSON.stringify(gameConfig)));
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState<boolean>(false);
   const [showAddSettingDialog, setShowAddSettingDialog] = useState<boolean>(false);
+  const [confirmationValue, setConfirmationValue] = useState<string | null>(null);
 
   const categories = useMemo<string[]>(() => {
     const set = new Set<string>();
     Object.keys(config.categories).forEach((category) => set.add(category));
-    Object.keys(props.game.baseConfig.categories).forEach((category) => set.add(category));
+    Object.keys(baseConfig.categories).forEach((category) => set.add(category));
     return [...set];
-  }, [props.game.baseConfig, config]);
+  }, [baseConfig, config]);
 
-  const settings = useMemo<string[]>(() => {
-    if (!selection[0]) return [];
-
-    const set = new Set<string>();
-    Object.keys(config.categories[selection[0]]?.settings ?? {}).forEach((setting) => set.add(setting));
-    Object.keys(props.game.baseConfig.categories[selection[0]]?.settings ?? {}).forEach((setting) => set.add(setting));
-    return [...set];
-  }, [selection[0], props.game.baseConfig, config]);
+  const saveChanges = (config: string) => {
+    navigator.clipboard.writeText(config);
+    console.log(config);
+  };
 
   return (
     <>
@@ -51,7 +60,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
           <div style="flex: 1 1 auto; display: flex; overflow: hidden;">
             <div style="flex: 0 0 120px; display: flex; flex-direction: column;">
               <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;">
-                <div>Categories</div>
+                <OutsetHead>Categories</OutsetHead>
                 <Inset style="flex: 1 1 auto;">
                   <List
                     items={categories}
@@ -61,16 +70,16 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                   >
                     {(category) => {
                       const isInGameConfig = Object.keys(config.categories).includes(category);
-                      const containsDifferences = settings.some((setting) => {
-                        const baseValue = props.game.baseConfig.categories[category]?.settings[setting] ?? "";
-                        const value = config.categories[category]?.settings[setting] ?? "";
-                        return baseValue !== value && value !== "";
-                      });
+                      const containsDifferences = resolveCategorySettings(config, baseConfig, category).some(
+                        (setting) => {
+                          const baseValue = baseConfig.categories[category]?.settings[setting] ?? "";
+                          const value = config.categories[category]?.settings[setting] ?? "";
+                          return baseValue !== value && value !== "";
+                        }
+                      );
 
                       return (
-                        <span
-                          style={{ color: containsDifferences ? "var(--color-front)" : "var(--color-primary-bright)" }}
-                        >
+                        <span style={{ color: containsDifferences ? "var(--color-front)" : "var(--color-front-alt)" }}>
                           {isInGameConfig ? "" : "~ "}
                           {category}
                         </span>
@@ -110,11 +119,11 @@ const ConfigureGame = (props: ConfigureGameProps) => {
             </div>
             <div style="flex: 1 1 auto; display: flex; flex-direction: column;">
               <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;">
-                <div>Category settings</div>
+                <OutsetHead>Category settings</OutsetHead>
                 <Inset style="flex: 1 1 auto;">
                   {selection[0] && (
                     <List
-                      items={settings}
+                      items={selection[0] ? resolveCategorySettings(config, baseConfig, selection[0]) : []}
                       getKey={(setting) => setting}
                       selection={selection[1]}
                       onSelect={(setting) => setSelection(setting ? [selection[0], setting] : [selection[0]])}
@@ -123,12 +132,12 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                         const isInGameConfig = Object.keys(config.categories[selection[0]]?.settings ?? {}).includes(
                           setting
                         );
-                        const baseValue = props.game.baseConfig.categories[selection[0]]?.settings[setting] ?? "";
+                        const baseValue = baseConfig.categories[selection[0]]?.settings[setting] ?? "";
                         const value = config.categories[selection[0]]?.settings[setting] ?? "";
                         const isDifferent = baseValue !== value && value !== "";
 
                         return (
-                          <span style={{ color: isDifferent ? "var(--color-front)" : "var(--color-primary-bright)" }}>
+                          <span style={{ color: isDifferent ? "var(--color-front)" : "var(--color-front-alt)" }}>
                             {isInGameConfig ? "" : "~ "}
                             {`${setting} = ${value}`}
                           </span>
@@ -143,7 +152,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                     name="setting_value"
                     id="setting_value"
                     disabled={!selection[1]}
-                    placeholder={props.game.baseConfig.categories[selection[0]]?.settings[selection[1]]}
+                    placeholder={baseConfig.categories[selection[0]]?.settings[selection[1]]}
                     value={config.categories[selection[0]]?.settings[selection[1]] ?? ""}
                     onChange={(event) => {
                       const value = (event.target as HTMLInputElement).value;
@@ -249,8 +258,11 @@ const ConfigureGame = (props: ConfigureGameProps) => {
             <Button
               type="button"
               onClick={() => {
-                navigator.clipboard.writeText(stringifyConfig(config));
-                console.log(stringifyConfig(config));
+                if (settings.find((setting) => setting.key === "confirmConfigChanges")?.value === "1") {
+                  setConfirmationValue(stringifyConfig(config));
+                } else {
+                  saveChanges(stringifyConfig(config));
+                }
               }}
             >
               OK
@@ -297,6 +309,18 @@ const ConfigureGame = (props: ConfigureGameProps) => {
           setSelection([selection[0], values.name]);
         }}
       />
+      {!!confirmationValue && (
+        <ConfigChangesConfirmation
+          left={props.gameConfig.replaceAll("\r\n", "\n")}
+          right={confirmationValue}
+          onHide={() => setConfirmationValue(null)}
+          onConfirm={() => {
+            saveChanges(confirmationValue);
+            setConfirmationValue(null);
+            props.onHide();
+          }}
+        />
+      )}
     </>
   );
 };

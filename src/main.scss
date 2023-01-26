@@ -3,35 +3,26 @@
   --color-back-bright: #022b50;
   --color-back-brighter: #04579f;
   --color-front: #ffffff;
+  --color-front-alt: #5f95dd;
   --color-primary: #2e5486;
   --color-primary-bright: #5f95dd;
   --color-primary-dark: #1e3757;
   --color-primary-darker: #0b2242;
+  --color-primary-contrast: #ffffff;
   --color-button: #9690b3;
   --color-button-bright: #fffdfe;
   --color-button-dark: #746d88;
   --color-button-darker: #35323d;
+  --color-button-contrast: #000000;
   --color-button-disabled: #464354;
   --color-button-disabled-bright: #777677;
   --color-button-disabled-dark: #36333f;
   --color-button-disabled-darker: #19171c;
   --color-scrollbar: #a6d5fd;
+  --color-input-placeholder: #9690b3;
+  --color-input-disabled-bg: #464354;
 
   --font-family: "Ubuntu Mono", monospace;
-
-  --border-color-outset: var(--color-primary-bright) var(--color-primary-darker) var(--color-primary-dark)
-    var(--color-primary-bright);
-  --border-color-inset: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
-    var(--color-primary-darker);
-  --border-color-button: var(--color-button-bright) var(--color-button-darker) var(--color-button-dark)
-    var(--color-button-bright);
-  --border-color-button-disabled: var(--color-button-disabled-bright) var(--color-button-disabled-darker)
-    var(--color-button-disabled-dark) var(--color-button-disabled-bright);
-
-  background: var(--color-back);
-  color: var(--color-front);
-  font-size: 12px;
-  font-family: var(--font-family);
 }
 
 * {
@@ -40,6 +31,10 @@
 
 body {
   margin: 0;
+  background: var(--color-back);
+  color: var(--color-front);
+  font-size: 12px;
+  font-family: var(--font-family);
 }
 
 #app {
@@ -102,11 +97,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-back);
+  color: var(--color-button-contrast);
   background: var(--color-button);
   border-width: 2px;
   border-style: solid;
-  border-color: var(--border-color-button);
+  border-color: var(--color-button-bright) var(--color-button-darker) var(--color-button-dark)
+    var(--color-button-bright);
   padding: 3px 8px;
   text-transform: uppercase;
   font-size: 12px;
@@ -124,7 +120,8 @@ body {
 
 .button:disabled > .button__content {
   background: var(--color-button-disabled);
-  border-color: var(--border-color-button-disabled);
+  border-color: var(--color-button-disabled-bright) var(--color-button-disabled-darker)
+    var(--color-button-disabled-dark) var(--color-button-disabled-bright);
 }
 
 // DataTable
@@ -244,7 +241,8 @@ body {
   background: var(--color-back);
   border-style: solid;
   border-width: 2px;
-  border-color: var(--border-color-inset);
+  border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
+    var(--color-primary-darker);
   outline-offset: -4px;
 }
 
@@ -253,11 +251,11 @@ body {
 }
 
 .input input:disabled {
-  background: var(--color-button-disabled);
+  background: var(--color-input-disabled-bg);
 }
 
 .input input::placeholder {
-  color: var(--color-button);
+  color: var(--color-input-placeholder);
 }
 
 .input.error input:not(:focus) {
@@ -282,10 +280,20 @@ body {
 .outset {
   border-style: solid;
   border-width: 2px;
-  border-color: var(--border-color-outset);
+  border-color: var(--color-primary-bright) var(--color-primary-darker) var(--color-primary-dark)
+    var(--color-primary-bright);
   background: var(--color-primary);
+  color: var(--color-primary-contrast);
   padding: 4px;
   overflow: hidden;
+}
+
+// OutsetHead
+
+.outset-head {
+  text-align: center;
+  padding: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' viewBox='0 0 2 2'%3E%3Cpath d='M1 0h1v1H1zM0 1h1v1H0z'/%3E%3C/svg%3E");
 }
 
 // Inset
@@ -293,7 +301,8 @@ body {
 .inset {
   border-style: solid;
   border-width: 2px;
-  border-color: var(--border-color-inset);
+  border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
+    var(--color-primary-darker);
   background: var(--color-back-bright);
   overflow: hidden;
 }
@@ -343,7 +352,8 @@ body {
   background: var(--color-back);
   border-style: solid;
   border-width: 2px;
-  border-color: var(--border-color-inset);
+  border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
+    var(--color-primary-darker);
   outline-offset: -4px;
   resize: none;
   white-space: nowrap;
@@ -354,11 +364,11 @@ body {
 }
 
 .text-area textarea:disabled {
-  background: var(--color-button-disabled);
+  background: var(--color-input-disabled-bg);
 }
 
 .text-area textarea::placeholder {
-  color: var(--color-button);
+  color: var(--color-input-placeholder);
 }
 
 .text-area.error textarea:not(:focus) {
@@ -370,8 +380,76 @@ body {
 .divider {
   border-style: solid;
   border-width: 1px;
-  border-color: var(--border-color-inset);
+  border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
+    var(--color-primary-darker);
   background: var(--color-back-bright);
   overflow: hidden;
   margin: 0 4px;
+}
+
+// Checkbox
+
+.checkbox {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.checkbox label {
+  padding: 2px 0;
+}
+
+.checkbox input {
+  flex: 0 0 auto;
+  appearance: none;
+  background: var(--color-back);
+  padding: 1px;
+  border: none;
+  display: flex;
+  margin: 0;
+}
+
+.checkbox input::before,
+.checkbox input::after {
+  width: 4ch;
+  content: "";
+  text-align: center;
+  display: block;
+  background: var(--color-button);
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--color-button-bright) var(--color-button-darker) var(--color-button-dark)
+    var(--color-button-bright);
+  color: var(--color-front);
+  font-size: 10px;
+  font-family: var(--font-family);
+}
+
+.checkbox input:not(:checked)::after {
+  background: transparent;
+  border-color: transparent;
+}
+
+.checkbox input:checked::before {
+  content: "ON";
+  background: transparent;
+  border-color: transparent;
+}
+
+.checkbox input:disabled:not(:checked)::before {
+  background: var(--color-button-disabled);
+  border-color: var(--color-button-disabled-bright) var(--color-button-disabled-darker)
+    var(--color-button-disabled-dark) var(--color-button-disabled-bright);
+}
+
+.checkbox input:disabled:checked::after {
+  background: var(--color-button-disabled);
+  border-color: var(--color-button-disabled-bright) var(--color-button-disabled-darker)
+    var(--color-button-disabled-dark) var(--color-button-disabled-bright);
+}
+
+.checkbox input:focus {
+  outline: 1px dotted var(--color-front);
 }

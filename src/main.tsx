@@ -1,6 +1,8 @@
 import { render } from "preact";
-import App from "./app/App";
 
 import "./main.scss";
+import "./common/yup";
+
+import App from "./app/App";
 
 render(<App />, document.getElementById("app") as HTMLElement);

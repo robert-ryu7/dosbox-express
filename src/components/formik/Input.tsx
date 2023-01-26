@@ -7,12 +7,12 @@ type InputProps = {
   id: string;
   name: string;
   className?: string;
-  placeholder?: string;
   disabled?: boolean;
+  placeholder?: string;
   after?: JSX.Element;
 };
 
-const Input = ({ label, id, name, className, placeholder, disabled, after }: InputProps) => {
+const Input = ({ label, id, name, className, disabled, placeholder, after }: InputProps) => {
   const [field, meta] = useField(name);
 
   return (
@@ -20,8 +20,8 @@ const Input = ({ label, id, name, className, placeholder, disabled, after }: Inp
       className={clsx(meta.touched && meta.error && "error", className)}
       id={id}
       label={label}
-      placeholder={placeholder}
       disabled={disabled}
+      placeholder={placeholder}
       after={after}
       {...field}
     />

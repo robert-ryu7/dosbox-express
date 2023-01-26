@@ -4,6 +4,11 @@ export type Game = {
   config_path: string;
 };
 
+export type Setting = {
+  key: string;
+  value: string;
+};
+
 export type WindowProps = {
   path: string[];
 };

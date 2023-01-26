@@ -7,12 +7,12 @@ type TextAreaProps = {
   id: string;
   name: string;
   className?: string;
-  placeholder?: string;
   disabled?: boolean;
+  placeholder?: string;
   after?: JSX.Element;
 };
 
-const TextArea = ({ label, id, name, className, placeholder, disabled, after }: TextAreaProps) => {
+const TextArea = ({ label, id, name, className, disabled, placeholder, after }: TextAreaProps) => {
   const [field, meta] = useField(name);
 
   return (
@@ -20,8 +20,8 @@ const TextArea = ({ label, id, name, className, placeholder, disabled, after }: 
       className={clsx(meta.touched && meta.error && "error", className)}
       id={id}
       label={label}
-      placeholder={placeholder}
       disabled={disabled}
+      placeholder={placeholder}
       after={after}
       {...field}
     />
