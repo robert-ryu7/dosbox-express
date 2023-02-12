@@ -61,7 +61,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
   return (
     <>
       <Dialog show onHide={props.onHide}>
-        <div style="width: 100vw; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); display: flex; flex-direction: column;">
+        <div style="width: calc(100vw - 32px); height: calc(100vh - 32px); display: flex; flex-direction: column;">
           <div style="flex: 1 1 auto; display: flex; overflow: hidden;">
             <div style="flex: 0 0 120px; display: flex; flex-direction: column;">
               <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;">
@@ -229,6 +229,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                   name={`${selection[0]}.comments`}
                   id={`${selection[0]}.comments`}
                   label="Category comments"
+                  placeholder={baseConfig.categories[selection[0]]?.comments}
                   value={config.categories[selection[0]]?.comments ?? ""}
                   onChange={(event) => {
                     const value = (event.target as HTMLTextAreaElement).value;

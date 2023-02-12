@@ -356,7 +356,7 @@ body {
     var(--color-primary-darker);
   outline-offset: -4px;
   resize: none;
-  white-space: nowrap;
+  white-space: pre;
 }
 
 .text-area textarea:focus {
@@ -369,6 +369,7 @@ body {
 
 .text-area textarea::placeholder {
   color: var(--color-input-placeholder);
+  white-space: pre;
 }
 
 .text-area.error textarea:not(:focus) {

@@ -18,10 +18,10 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
 
   return (
     <Dialog show onHide={props.onHide}>
-      <div style="width: 100vw; max-width: calc(100vw - 64px); max-height: calc(100vh - 64px); display: flex; flex-direction: column;">
+      <div style="width: calc(100vw - 64px); height: calc(100vh - 64px); display: flex; flex-direction: column;">
         <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; gap: 4px;">
           <OutsetHead>Confirm changes</OutsetHead>
-          <Inset style="overflow: auto;">
+          <Inset style="flex: 1 1 auto; overflow: auto;">
             <div style="white-space: pre;">
               {diff.map((part, index) => (
                 <span
