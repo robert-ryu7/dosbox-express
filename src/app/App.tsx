@@ -1,5 +1,5 @@
 import { ComponentType } from "preact";
-import { PATH, shiftPath } from "./utils/path";
+import { PATH, shiftPath } from "../common/path";
 import { Setting, WindowProps } from "../types";
 import Main from "./windows/Main";
 import runningGamesContext from "./contexts/runningGamesContext";

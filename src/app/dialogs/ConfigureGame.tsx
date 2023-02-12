@@ -311,7 +311,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
       />
       {!!confirmationValue && (
         <ConfigChangesConfirmation
-          left={props.gameConfig.replaceAll("\r\n", "\n")}
+          left={props.gameConfig}
           right={confirmationValue}
           onHide={() => setConfirmationValue(null)}
           onConfirm={() => {

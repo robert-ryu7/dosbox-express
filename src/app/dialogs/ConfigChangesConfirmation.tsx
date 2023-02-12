@@ -22,9 +22,9 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
         <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; gap: 4px;">
           <OutsetHead>Confirm changes</OutsetHead>
           <Inset style="overflow: auto;">
-            <div style="white-space: pre-wrap;">
+            <div style="white-space: pre;">
               {diff.map((part, index) => (
-                <div
+                <span
                   key={index}
                   style={{
                     color: part.added ? "#000" : part.removed ? "#000" : "var(--color-front-alt)",
@@ -32,7 +32,7 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
                   }}
                 >
                   {part.value}
-                </div>
+                </span>
               ))}
             </div>
           </Inset>

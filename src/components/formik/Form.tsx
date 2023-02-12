@@ -1,6 +1,7 @@
 import { message } from "@tauri-apps/api/dialog";
 import { useFormikContext } from "formik";
 import { ComponentChildren } from "preact";
+import { N } from "../../common/constants";
 
 type FormProps = {
   children: ComponentChildren;
@@ -18,7 +19,7 @@ const Form = (props: FormProps) => {
         if (!formik.isValid) {
           let text = ["Cannot continue due to errors:"]
             .concat(...Object.values(formik.errors).map((error) => `• ${error}`))
-            .join("\n");
+            .join(N);
 
           message(text, { type: "error" });
         }

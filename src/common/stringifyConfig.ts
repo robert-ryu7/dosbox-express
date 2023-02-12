@@ -1,25 +1,26 @@
 import { Config } from "../types";
+import { N } from "./constants";
 
 const stringifyConfig = (config: Config): string => {
   let result = "";
 
   if (config.comments) {
     result += config.comments
-      .split("\n")
+      .split(N)
       .map((line) => `#${line}`)
-      .join("\n");
-    result += "\n\n";
+      .join(N);
+    result += N + N;
   }
 
   for (const categoryName in config.categories) {
-    result += `[${categoryName}]\n`;
+    result += `[${categoryName}]` + N;
 
     if (config.categories[categoryName].comments) {
       result += config.categories[categoryName].comments
-        .split("\n")
+        .split(N)
         .map((line) => `#${line}`)
-        .join("\n");
-      result += "\n\n";
+        .join(N);
+      result += N + N;
     }
 
     const padding = Object.keys(config.categories[categoryName].settings).reduce(
@@ -27,12 +28,12 @@ const stringifyConfig = (config: Config): string => {
       0
     );
     for (const settingName in config.categories[categoryName].settings) {
-      result += `${settingName.padEnd(padding)} = ${config.categories[categoryName].settings[settingName]}\n`;
+      result += `${settingName.padEnd(padding)} = ${config.categories[categoryName].settings[settingName]}` + N;
     }
-    result += "\n";
+    result += N;
   }
 
-  result += "[autoexec]\n";
+  result += "[autoexec]" + N;
   result += config.autoexec;
 
   return result;
