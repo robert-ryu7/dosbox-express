@@ -9,6 +9,7 @@ import Dialog from "../../components/Dialog";
 import { Game } from "../../types";
 import Outset from "../../components/Outset";
 import Form from "../../components/formik/Form";
+import { useSettings } from "../contexts/settingsContext";
 
 type Values = {
   title: string;
@@ -31,6 +32,7 @@ type EditGameProps = {
 };
 
 const EditGame = (props: EditGameProps) => {
+  const settings = useSettings();
   const formik = useFormik<Values>({
     initialValues: props.game ? { title: props.game.title, configPath: props.game.config_path } : initialValues,
     validationSchema,
@@ -56,18 +58,29 @@ const EditGame = (props: EditGameProps) => {
               after={
                 <Button
                   onClick={async () => {
-                    const selected = await open({
-                      multiple: false,
-                      filters: [
-                        {
-                          name: "DOSBox configuration file",
-                          extensions: ["conf"],
-                        },
-                      ],
-                    });
+                    try {
+                      let path = await open({
+                        multiple: false,
+                        filters: [
+                          {
+                            name: "DOSBox configuration file",
+                            extensions: ["conf"],
+                          },
+                        ],
+                      });
 
-                    if (selected !== null) {
-                      formik.setFieldValue("configPath", selected);
+                      if (
+                        settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1"
+                      ) {
+                        const relativePath = await invoke<string | null>("make_relative_path", { path });
+                        if (relativePath) path = relativePath;
+                      }
+
+                      if (typeof path === "string") {
+                        formik.setFieldValue("configPath", path);
+                      }
+                    } catch (err: unknown) {
+                      message(String(err), { type: "error" });
                     }
                   }}
                 >

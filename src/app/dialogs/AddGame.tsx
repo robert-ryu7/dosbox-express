@@ -9,6 +9,7 @@ import { useEffect } from "preact/hooks";
 import Dialog from "../../components/Dialog";
 import Outset from "../../components/Outset";
 import Form from "../../components/formik/Form";
+import { useSettings } from "../contexts/settingsContext";
 
 type Values = {
   title: string;
@@ -31,6 +32,7 @@ type AddGameProps = {
 };
 
 const AddGame = (props: AddGameProps) => {
+  const settings = useSettings();
   const formik = useFormik<Values>({
     initialValues,
     validationSchema,
@@ -59,18 +61,29 @@ const AddGame = (props: AddGameProps) => {
               after={
                 <Button
                   onClick={async () => {
-                    const selected = await open({
-                      multiple: false,
-                      filters: [
-                        {
-                          name: "DOSBox configuration file",
-                          extensions: ["conf"],
-                        },
-                      ],
-                    });
+                    try {
+                      let path = await open({
+                        multiple: false,
+                        filters: [
+                          {
+                            name: "DOSBox configuration file",
+                            extensions: ["conf"],
+                          },
+                        ],
+                      });
 
-                    if (selected !== null) {
-                      formik.setFieldValue("configPath", selected);
+                      if (
+                        settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1"
+                      ) {
+                        const relativePath = await invoke<string | null>("make_relative_path", { path });
+                        if (relativePath) path = relativePath;
+                      }
+
+                      if (typeof path === "string") {
+                        formik.setFieldValue("configPath", path);
+                      }
+                    } catch (err: unknown) {
+                      message(String(err), { type: "error" });
                     }
                   }}
                 >

@@ -582,6 +582,7 @@ dependencies = [
  "diesel_migrations",
  "dotenvy",
  "dunce",
+ "pathdiff",
  "serde",
  "serde_json",
  "subprocess",

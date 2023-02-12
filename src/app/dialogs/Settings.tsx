@@ -29,6 +29,7 @@ import OutsetHead from "../../components/OutsetHead";
 
 type Values = {
   confirmConfigChanges: boolean;
+  useRelativeConfigPathsWhenPossible: boolean;
   primaryColor: string | undefined;
   buttonColor: string | undefined;
   scrollbarColor: string | undefined;
@@ -43,6 +44,7 @@ type Values = {
 
 const validationSchema: Yup.SchemaOf<Values> = Yup.object({
   confirmConfigChanges: Yup.bool().label("Confirm config changes").defined(),
+  useRelativeConfigPathsWhenPossible: Yup.bool().label("Confirm config changes").defined(),
   primaryColor: Yup.string().label("Primary color").color().optional(),
   buttonColor: Yup.string().label("Button color").color().optional(),
   scrollbarColor: Yup.string().label("Scrollbar color").color().optional(),
@@ -123,6 +125,8 @@ const Settings = (props: SettingsProps) => {
   const initialValues = useMemo<Values>(() => {
     return {
       confirmConfigChanges: settings.find((setting) => setting.key === "confirmConfigChanges")?.value === "1",
+      useRelativeConfigPathsWhenPossible:
+        settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1",
       primaryColor: settings.find((setting) => setting.key === "primaryColor")?.value ?? "",
       buttonColor: settings.find((setting) => setting.key === "buttonColor")?.value ?? "",
       scrollbarColor: settings.find((setting) => setting.key === "scrollbarColor")?.value ?? "",
@@ -144,6 +148,7 @@ const Settings = (props: SettingsProps) => {
       await invoke("set_settings", {
         changedSettings: [
           { key: "confirmConfigChanges", value: values.confirmConfigChanges ? "1" : "0" },
+          { key: "useRelativeConfigPathsWhenPossible", value: values.useRelativeConfigPathsWhenPossible ? "1" : "0" },
           { key: "primaryColor", value: values.primaryColor },
           { key: "buttonColor", value: values.buttonColor },
           { key: "scrollbarColor", value: values.scrollbarColor },
@@ -288,6 +293,11 @@ const Settings = (props: SettingsProps) => {
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Miscellaneous</OutsetHead>
             <Checkbox name="confirmConfigChanges" id="confirmConfigChanges" label="Confirm config changes" />
+            <Checkbox
+              name="useRelativeConfigPathsWhenPossible"
+              id="useRelativeConfigPathsWhenPossible"
+              label="Use relative config paths when possible"
+            />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button type="button" onClick={() => props.onHide()}>

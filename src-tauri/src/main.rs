@@ -13,8 +13,6 @@ use dosbox_express::schema::games::dsl::games;
 use dosbox_express::schema::settings::dsl::settings;
 use dotenvy::dotenv;
 use std::collections::HashMap;
-use std::env;
-use std::path::Path;
 use std::sync::Mutex;
 use std::thread;
 use subprocess::Exec;
@@ -24,11 +22,8 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 struct RunningGames(Mutex<HashMap<i32, u32>>);
 
-fn get_dosbox_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    let path = app
-        .path_resolver()
-        .resolve_resource("dosbox/dosbox.exe")
-        .ok_or("Failed to resolve DOSBox path")?;
+fn get_dosbox_path() -> Result<std::path::PathBuf, String> {
+    let path = std::env::var("DOSBOX_PATH").expect("DOSBOX_PATH must be set");
 
     return dunce::canonicalize(path).or_else(|err| Err(err.to_string()));
 }
@@ -63,6 +58,13 @@ fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
 }
 
 #[tauri::command]
+fn make_relative_path(path: String) -> Option<String> {
+    let current_dir = std::env::current_dir().unwrap();
+    return pathdiff::diff_paths(path, current_dir)
+        .and_then(|path| path.to_str().and_then(|str| Some(String::from(str))));
+}
+
+#[tauri::command]
 async fn run_game(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<SqliteConnection>>,
@@ -82,10 +84,13 @@ async fn run_game(
         .filter(dosbox_express::schema::games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
-    let parent_path = Path::new(&game.config_path)
+    let resolved_config_path =
+        dunce::canonicalize(&game.config_path).or_else(|err| Err(err.to_string()))?;
+
+    let parent_path = resolved_config_path
         .parent()
         .ok_or("Failed to find parent path")?;
-    let dosbox_path = get_dosbox_path(&app)?;
+    let dosbox_path = get_dosbox_path()?;
 
     match Exec::cmd("cmd")
         .detached()
@@ -93,7 +98,7 @@ async fn run_game(
         .arg(dosbox_path)
         .arg(parent_path)
         .arg("-conf")
-        .arg(game.config_path)
+        .arg(resolved_config_path)
         .arg("-noconsole")
         .popen()
     {
@@ -275,7 +280,7 @@ fn set_settings(
 fn main() {
     dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let mut connection = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
     connection
@@ -284,7 +289,7 @@ fn main() {
 
     tauri::Builder::default()
         .setup(|app| {
-            let dosbox_path = get_dosbox_path(&app.handle())?;
+            let dosbox_path = get_dosbox_path()?;
             let resource_dir = app
                 .path_resolver()
                 .resource_dir()
@@ -315,6 +320,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             get_game_config,
             get_running_games,
+            make_relative_path,
             run_game,
             add_game,
             edit_game,

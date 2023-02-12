@@ -22,6 +22,7 @@ diesel_migrations = { version = "2.0.0", features = ["sqlite"] }
 dotenvy = "0.15"
 subprocess = "0.2.9"
 dunce = "1.0.3"
+pathdiff = "0.2.1"
 
 [features]
 # by default Tauri runs in production mode
