@@ -39,7 +39,7 @@ const EditGame = (props: EditGameProps) => {
     validateOnMount: true,
     enableReinitialize: true,
     onSubmit: async (values) => {
-      await invoke("edit_game", { ...props.game, ...values });
+      await invoke("update_game", { ...props.game, ...values });
       props.onHide();
     },
   });

@@ -47,6 +47,25 @@ fn get_game_config(
 }
 
 #[tauri::command]
+fn update_game_config(
+    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    id: i32,
+    config: String,
+) -> Result<(), String> {
+    let mut connection = state
+        .lock()
+        .expect("Database connection was not found in state");
+    let connection = &mut *connection;
+
+    let game = games
+        .filter(dosbox_express::schema::games::id.eq(id))
+        .first::<Game>(connection)
+        .or_else(|err| Err(err.to_string()))?;
+
+    std::fs::write(game.config_path, config).or_else(|err| Err(err.to_string()))
+}
+
+#[tauri::command]
 fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
     return running_games
         .0
@@ -151,7 +170,7 @@ async fn run_game(
 }
 
 #[tauri::command]
-fn add_game(
+fn create_game(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<SqliteConnection>>,
     title: &str,
@@ -169,11 +188,11 @@ fn add_game(
         .execute(connection)
         .expect("Error saving new game");
 
-    app.emit_all("games_changed", "add_game").unwrap();
+    app.emit_all("games_changed", "create_game").unwrap();
 }
 
 #[tauri::command]
-fn edit_game(
+fn update_game(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<SqliteConnection>>,
     id: i32,
@@ -193,7 +212,7 @@ fn edit_game(
         .execute(connection)
         .or(Err("Failed to update game"))?;
 
-    app.emit_all("games_changed", "add_game").unwrap();
+    app.emit_all("games_changed", "update_game").unwrap();
 
     Ok(())
 }
@@ -243,7 +262,7 @@ fn get_settings(state: tauri::State<'_, Mutex<SqliteConnection>>) -> Result<Vec<
 }
 
 #[tauri::command]
-fn set_settings(
+fn update_settings(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<diesel::sqlite::SqliteConnection>>,
     changed_settings: Vec<dosbox_express::models::UpsertSetting>,
@@ -319,15 +338,16 @@ fn main() {
         .manage(RunningGames(Default::default()))
         .invoke_handler(tauri::generate_handler![
             get_game_config,
+            update_game_config,
             get_running_games,
             make_relative_path,
             run_game,
-            add_game,
-            edit_game,
+            create_game,
+            update_game,
             get_games,
             delete_games,
             get_settings,
-            set_settings
+            update_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -145,7 +145,7 @@ const Settings = (props: SettingsProps) => {
     validateOnMount: true,
     enableReinitialize: true,
     onSubmit: async (values) => {
-      await invoke("set_settings", {
+      await invoke("update_settings", {
         changedSettings: [
           { key: "confirmConfigChanges", value: values.confirmConfigChanges ? "1" : "0" },
           { key: "useRelativeConfigPathsWhenPossible", value: values.useRelativeConfigPathsWhenPossible ? "1" : "0" },

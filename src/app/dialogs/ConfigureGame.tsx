@@ -8,7 +8,7 @@ import Input from "../../components/Input";
 import { Config, ConfigCategoryData } from "../../types";
 import TextArea from "../../components/TextArea";
 import stringifyConfig from "../../common/stringifyConfig";
-import { confirm } from "@tauri-apps/api/dialog";
+import { confirm, message } from "@tauri-apps/api/dialog";
 import AddCategory from "./AddCategory";
 import AddSetting from "./AddSetting";
 import Divider from "../../components/Divider";
@@ -16,6 +16,7 @@ import { useSettings } from "../contexts/settingsContext";
 import ConfigChangesConfirmation from "./ConfigChangesConfirmation";
 import parseConfig from "../../common/parseConfig";
 import OutsetHead from "../../components/OutsetHead";
+import { invoke } from "@tauri-apps/api";
 
 type ConfigureGameProps = {
   id: number;
@@ -48,9 +49,13 @@ const ConfigureGame = (props: ConfigureGameProps) => {
     return [...set];
   }, [baseConfig, config]);
 
-  const saveChanges = (config: string) => {
-    navigator.clipboard.writeText(config);
-    console.log(config);
+  const saveChanges = async (config: string) => {
+    try {
+      await invoke("update_game_config", { id: props.id, config });
+      props.onHide();
+    } catch (err: unknown) {
+      message(String(err), { type: "error" });
+    }
   };
 
   return (
@@ -219,7 +224,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
               </Outset>
               <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">
                 <TextArea
-                  rows={5}
+                  rows={6}
                   key={`${selection[0]}.comments`}
                   name={`${selection[0]}.comments`}
                   id={`${selection[0]}.comments`}
@@ -241,7 +246,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
           </div>
           <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">
             <TextArea
-              rows={5}
+              rows={6}
               name="autoexec"
               id="autoexec"
               label="Autoexec"
@@ -315,9 +320,8 @@ const ConfigureGame = (props: ConfigureGameProps) => {
           right={confirmationValue}
           onHide={() => setConfirmationValue(null)}
           onConfirm={() => {
-            saveChanges(confirmationValue);
             setConfirmationValue(null);
-            props.onHide();
+            saveChanges(confirmationValue);
           }}
         />
       )}

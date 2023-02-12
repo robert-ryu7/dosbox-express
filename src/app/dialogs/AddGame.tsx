@@ -38,7 +38,7 @@ const AddGame = (props: AddGameProps) => {
     validationSchema,
     validateOnMount: true,
     onSubmit: async (values) => {
-      await invoke("add_game", values);
+      await invoke("create_game", values);
       props.onHide();
     },
   });
