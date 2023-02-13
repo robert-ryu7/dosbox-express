@@ -21,20 +21,18 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
       <div style="width: calc(100vw - 64px); height: calc(100vh - 64px); display: flex; flex-direction: column;">
         <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; gap: 4px;">
           <OutsetHead>Confirm changes</OutsetHead>
-          <Inset style="flex: 1 1 auto; overflow: auto;">
-            <div style="white-space: pre;">
-              {diff.map((part, index) => (
-                <span
-                  key={index}
-                  style={{
-                    color: part.added ? "#000" : part.removed ? "#000" : "var(--color-front-alt)",
-                    background: part.added ? "#4c0" : part.removed ? "#c40" : "transparent",
-                  }}
-                >
-                  {part.value}
-                </span>
-              ))}
-            </div>
+          <Inset style="flex: 1 1 auto; overflow: auto; display: grid; white-space: pre;">
+            {diff.map((part, index) => (
+              <div
+                key={index}
+                style={{
+                  color: part.added ? "#000" : part.removed ? "#000" : "var(--color-front-alt)",
+                  background: part.added ? "#4c0" : part.removed ? "#c40" : "transparent",
+                }}
+              >
+                {part.value}
+              </div>
+            ))}
           </Inset>
         </Outset>
         <Outset style="flex: 0 0 auto; display: flex; gap: 2px;">
@@ -48,9 +46,9 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
               alignSelf: "center",
             }}
           >
-            {`${diff.filter((part) => part.added).length} line(s) added`}
+            {`${diff.filter((part) => part.added).reduce((acc, part) => acc + (part.count ?? 0), 0)} line(s) added`}
             {", "}
-            {`${diff.filter((part) => part.removed).length} line(s) removed`}
+            {`${diff.filter((part) => part.removed).reduce((acc, part) => acc + (part.count ?? 0), 0)} line(s) removed`}
           </div>
           <div style="flex: 0 0 auto; display: flex; gap: 2px;">
             <Button type="button" onClick={() => props.onHide()}>
