@@ -17,6 +17,7 @@ import ConfigChangesConfirmation from "./ConfigChangesConfirmation";
 import parseConfig from "../../common/parseConfig";
 import OutsetHead from "../../components/OutsetHead";
 import { invoke } from "@tauri-apps/api";
+import Checkbox from "../../components/Checkbox";
 
 type ConfigureGameProps = {
   id: number;
@@ -40,6 +41,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
   const [config, setConfig] = useState<Config>(() => JSON.parse(JSON.stringify(gameConfig)));
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState<boolean>(false);
   const [showAddSettingDialog, setShowAddSettingDialog] = useState<boolean>(false);
+  const [showBaseCategoryComments, setShowBaseCategoryComments] = useState<boolean>(false);
   const [confirmationValue, setConfirmationValue] = useState<string | null>(null);
 
   const categories = useMemo<string[]>(() => {
@@ -121,7 +123,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                 </div>
               </Outset>
             </div>
-            <div style="flex: 1 1 auto; display: flex; flex-direction: column;">
+            <div style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column;">
               <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;">
                 <OutsetHead>Category settings</OutsetHead>
                 <List
@@ -219,23 +221,37 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                 </div>
               </Outset>
               <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">
-                <TextArea
-                  rows={6}
-                  key={`${selection[0]}.comments`}
-                  name={`${selection[0]}.comments`}
-                  id={`${selection[0]}.comments`}
-                  label="Category comments"
-                  placeholder={baseConfig.categories[selection[0]]?.comments}
-                  value={config.categories[selection[0]]?.comments ?? ""}
+                {showBaseCategoryComments ? (
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <div>Base category comments</div>
+                    <Inset style="height: 72px;">{baseConfig.categories[selection[0]]?.comments}</Inset>
+                  </div>
+                ) : (
+                  <TextArea
+                    rows={6}
+                    key={`${selection[0]}.comments`}
+                    name={`${selection[0]}.comments`}
+                    id={`${selection[0]}.comments`}
+                    label="Category comments"
+                    value={config.categories[selection[0]]?.comments ?? ""}
+                    onChange={(event) => {
+                      const value = (event.target as HTMLTextAreaElement).value;
+                      setConfig((s) => ({
+                        ...s,
+                        categories: {
+                          ...s.categories,
+                          [selection[0]]: { ...s.categories[selection[0]], comments: value },
+                        },
+                      }));
+                    }}
+                  />
+                )}
+                <Checkbox
+                  id="showBaseCategoryComments"
+                  label="Show base category comments"
+                  checked={showBaseCategoryComments}
                   onChange={(event) => {
-                    const value = (event.target as HTMLTextAreaElement).value;
-                    setConfig((s) => ({
-                      ...s,
-                      categories: {
-                        ...s.categories,
-                        [selection[0]]: { ...s.categories[selection[0]], comments: value },
-                      },
-                    }));
+                    if (event.target instanceof HTMLInputElement) setShowBaseCategoryComments(event.target.checked);
                   }}
                 />
               </Outset>

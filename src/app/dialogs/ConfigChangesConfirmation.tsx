@@ -26,7 +26,7 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
               <div
                 key={index}
                 style={{
-                  color: part.added ? "#000" : part.removed ? "#000" : "var(--color-front-alt)",
+                  color: part.added ? "#000" : part.removed ? "#000" : undefined,
                   background: part.added ? "#4c0" : part.removed ? "#c40" : "transparent",
                 }}
               >

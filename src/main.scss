@@ -304,10 +304,12 @@ body {
   border-width: 2px;
   border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
     var(--color-primary-darker);
+  color: var(--color-front-alt);
   background: var(--color-back-bright);
   overflow: auto;
   white-space: pre;
   user-select: text;
+  padding: 4px 8px;
 }
 
 // List
@@ -330,7 +332,7 @@ body {
 .list__item {
   text-overflow: ellipsis;
   overflow: hidden;
-  padding: 6px 8px;
+  padding: 4px 8px;
   cursor: pointer;
 
   &--selected {
@@ -403,7 +405,6 @@ body {
   flex-direction: row;
   justify-content: flex-end;
   gap: 16px;
-  justify-content: space-between;
 }
 
 .checkbox label {
