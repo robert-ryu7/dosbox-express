@@ -118,7 +118,6 @@ async fn run_game(
         .arg(parent_path)
         .arg("-conf")
         .arg(resolved_config_path)
-        .arg("-noconsole")
         .popen()
     {
         Ok(mut popen) => {
@@ -166,6 +165,25 @@ async fn run_game(
             return Ok(());
         }
         Err(error) => return Err(error.to_string()),
+    }
+}
+
+#[tauri::command]
+async fn run_dosbox(params: String) -> Result<String, String> {
+    let dosbox_path = get_dosbox_path()?;
+
+    let capture_data = Exec::cmd("cmd")
+        .detached()
+        .arg("/c")
+        .arg(dosbox_path)
+        .arg(params)
+        .capture()
+        .or_else(|err| Err(err.to_string()))?;
+
+    if capture_data.success() {
+        return Ok(capture_data.stdout_str());
+    } else {
+        return Err(capture_data.stderr_str());
     }
 }
 
@@ -342,6 +360,7 @@ fn main() {
             get_running_games,
             make_relative_path,
             run_game,
+            run_dosbox,
             create_game,
             update_game,
             get_games,

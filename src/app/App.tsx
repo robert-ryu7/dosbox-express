@@ -9,6 +9,7 @@ import { useState, useLayoutEffect } from "preact/hooks";
 import settingsChangedSubscription from "../subscription/settingsChangedSubscription";
 import runningGamesChangedSubscription from "../subscription/runningGamesChangedSubscription";
 import { DEFAULT_BUTTON_SHADES, DEFAULT_PRIMARY_SHADES, getContrast, getShades, normalizeColor } from "../common/theme";
+import runnerContext from "./contexts/runnerContext";
 
 const windows: Record<string, ComponentType<WindowProps>> = {
   "": Main,
@@ -26,6 +27,7 @@ function App() {
     return settingsChangedSubscription.subscribe(setSettings);
   }, []);
 
+  const runnerContextValue = useState<boolean>(false);
   const [runningGames, setRunningGames] = useState<number[]>();
 
   useLayoutEffect(() => {
@@ -76,9 +78,11 @@ function App() {
 
   return (
     <settingsContext.Provider value={settings}>
-      <runningGamesContext.Provider value={runningGames}>
-        <Window path={shiftPath(PATH)} />
-      </runningGamesContext.Provider>
+      <runnerContext.Provider value={runnerContextValue}>
+        <runningGamesContext.Provider value={runningGames}>
+          <Window path={shiftPath(PATH)} />
+        </runningGamesContext.Provider>
+      </runnerContext.Provider>
     </settingsContext.Provider>
   );
 }

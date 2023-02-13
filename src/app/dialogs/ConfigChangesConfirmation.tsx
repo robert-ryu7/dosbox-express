@@ -21,7 +21,7 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
       <div style="width: calc(100vw - 64px); height: calc(100vh - 64px); display: flex; flex-direction: column;">
         <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; gap: 4px;">
           <OutsetHead>Confirm changes</OutsetHead>
-          <Inset style="flex: 1 1 auto; overflow: auto; display: grid; white-space: pre;">
+          <Inset style="flex: 1 1 auto; display: grid;">
             {diff.map((part, index) => (
               <div
                 key={index}

@@ -17,12 +17,14 @@ import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
 import fetchGameConfig from "../../fetchers/fetchGameConfig";
 import Settings from "../dialogs/Settings";
 import Divider from "../../components/Divider";
+import Tools from "../dialogs/Tools";
 
 const getGameKey = (game: Game) => game.id;
 
 const Main = (_: WindowProps) => {
   const runningGames = useRunningGames();
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [showTools, setShowTools] = useState<boolean>(false);
   const [showAddGameDialog, setShowAddGameDialog] = useState<boolean>(false);
   const [editGameDialogTarget, setEditGameDialogTarget] = useState<Game | null>(null);
   const [configureGameDialogTarget, setConfigureGameDialogTarget] = useState<{
@@ -144,10 +146,12 @@ const Main = (_: WindowProps) => {
           </Button>
           <Divider />
           <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
+          <Button onClick={() => setShowTools(true)}>Tools</Button>
           <Button onClick={() => setShowSettings(true)}>Settings</Button>
         </div>
       </Outset>
       {showSettings && <Settings show onHide={() => setShowSettings(false)} />}
+      {showTools && <Tools show onHide={() => setShowTools(false)} />}
       <AddGame show={showAddGameDialog} onHide={() => setShowAddGameDialog(false)} />
       <EditGame game={editGameDialogTarget} onHide={() => setEditGameDialogTarget(null)} />
       {configureGameDialogTarget && (

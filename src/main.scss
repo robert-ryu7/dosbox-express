@@ -268,6 +268,7 @@ body {
   padding: 0;
   color: var(--color-front);
   border-color: var(--color-back);
+  min-width: 320px;
 }
 
 .dialog::backdrop {
@@ -304,12 +305,19 @@ body {
   border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
     var(--color-primary-darker);
   background: var(--color-back-bright);
-  overflow: hidden;
+  overflow: auto;
+  white-space: pre;
+  user-select: text;
 }
 
 // List
 
 .list {
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
+    var(--color-primary-darker);
+  background: var(--color-back-bright);
   overflow: auto;
   height: 100%;
 }

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "preact/hooks";
 type ListProps<I, K> = {
   items: I[];
   selection: K | null;
+  style?: string | JSX.CSSProperties;
   getKey: (item: I, index: number) => K;
   children: (item: I) => ComponentChildren;
   onSelect: (key: K | null) => void;
@@ -55,7 +56,7 @@ const List = <I, K>(props: ListProps<I, K>) => {
   }, [props.selection]);
 
   return (
-    <div ref={rootRef} className="list" tabIndex={0} onKeyDown={handleKeyDown}>
+    <div ref={rootRef} className="list" style={props.style} tabIndex={0} onKeyDown={handleKeyDown}>
       {props.items.map((item, index) => {
         const key = props.getKey(item, index);
 

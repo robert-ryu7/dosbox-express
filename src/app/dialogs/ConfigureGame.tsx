@@ -66,32 +66,31 @@ const ConfigureGame = (props: ConfigureGameProps) => {
             <div style="flex: 0 0 120px; display: flex; flex-direction: column;">
               <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;">
                 <OutsetHead>Categories</OutsetHead>
-                <Inset style="flex: 1 1 auto;">
-                  <List
-                    items={categories}
-                    getKey={(category) => category}
-                    selection={selection[0]}
-                    onSelect={(category) => setSelection(category ? [category] : [])}
-                  >
-                    {(category) => {
-                      const isInGameConfig = Object.keys(config.categories).includes(category);
-                      const containsDifferences = resolveCategorySettings(config, baseConfig, category).some(
-                        (setting) => {
-                          const baseValue = baseConfig.categories[category]?.settings[setting] ?? "";
-                          const value = config.categories[category]?.settings[setting] ?? "";
-                          return baseValue !== value && value !== "";
-                        }
-                      );
+                <List
+                  style="flex: 1 1 auto;"
+                  items={categories}
+                  getKey={(category) => category}
+                  selection={selection[0]}
+                  onSelect={(category) => setSelection(category ? [category] : [])}
+                >
+                  {(category) => {
+                    const isInGameConfig = Object.keys(config.categories).includes(category);
+                    const containsDifferences = resolveCategorySettings(config, baseConfig, category).some(
+                      (setting) => {
+                        const baseValue = baseConfig.categories[category]?.settings[setting] ?? "";
+                        const value = config.categories[category]?.settings[setting] ?? "";
+                        return baseValue !== value && value !== "";
+                      }
+                    );
 
-                      return (
-                        <span style={{ color: containsDifferences ? "var(--color-front)" : "var(--color-front-alt)" }}>
-                          {isInGameConfig ? "" : "~ "}
-                          {category}
-                        </span>
-                      );
-                    }}
-                  </List>
-                </Inset>
+                    return (
+                      <span style={{ color: containsDifferences ? "var(--color-front)" : "var(--color-front-alt)" }}>
+                        {isInGameConfig ? "" : "~ "}
+                        {category}
+                      </span>
+                    );
+                  }}
+                </List>
                 <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px;">
                   <Button type="button" onClick={() => setShowAddCategoryDialog(true)}>
                     Add
@@ -125,32 +124,29 @@ const ConfigureGame = (props: ConfigureGameProps) => {
             <div style="flex: 1 1 auto; display: flex; flex-direction: column;">
               <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;">
                 <OutsetHead>Category settings</OutsetHead>
-                <Inset style="flex: 1 1 auto;">
-                  {selection[0] && (
-                    <List
-                      items={selection[0] ? resolveCategorySettings(config, baseConfig, selection[0]) : []}
-                      getKey={(setting) => setting}
-                      selection={selection[1]}
-                      onSelect={(setting) => setSelection(setting ? [selection[0], setting] : [selection[0]])}
-                    >
-                      {(setting) => {
-                        const isInGameConfig = Object.keys(config.categories[selection[0]]?.settings ?? {}).includes(
-                          setting
-                        );
-                        const baseValue = baseConfig.categories[selection[0]]?.settings[setting] ?? "";
-                        const value = config.categories[selection[0]]?.settings[setting] ?? "";
-                        const isDifferent = baseValue !== value && value !== "";
+                <List
+                  style="flex: 1 1 auto;"
+                  items={selection[0] ? resolveCategorySettings(config, baseConfig, selection[0]) : []}
+                  getKey={(setting) => setting}
+                  selection={selection[1] ?? null}
+                  onSelect={(setting) => setSelection(setting ? [selection[0], setting] : [selection[0]])}
+                >
+                  {(setting) => {
+                    const isInGameConfig = Object.keys(config.categories[selection[0]]?.settings ?? {}).includes(
+                      setting
+                    );
+                    const baseValue = baseConfig.categories[selection[0]]?.settings[setting] ?? "";
+                    const value = config.categories[selection[0]]?.settings[setting] ?? "";
+                    const isDifferent = baseValue !== value && value !== "";
 
-                        return (
-                          <span style={{ color: isDifferent ? "var(--color-front)" : "var(--color-front-alt)" }}>
-                            {isInGameConfig ? "" : "~ "}
-                            {`${setting} = ${value}`}
-                          </span>
-                        );
-                      }}
-                    </List>
-                  )}
-                </Inset>
+                    return (
+                      <span style={{ color: isDifferent ? "var(--color-front)" : "var(--color-front-alt)" }}>
+                        {isInGameConfig ? "" : "~ "}
+                        {`${setting} = ${value}`}
+                      </span>
+                    );
+                  }}
+                </List>
                 <div style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
                   <Input
                     style="flex: 1;"
