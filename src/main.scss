@@ -437,12 +437,13 @@ body {
 }
 
 .checkbox input:not(:checked)::after {
+  content: attr(data-off);
   background: transparent;
   border-color: transparent;
 }
 
 .checkbox input:checked::before {
-  content: "ON";
+  content: attr(data-on);
   background: transparent;
   border-color: transparent;
 }

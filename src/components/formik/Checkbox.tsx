@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import CheckboxBase from "../Checkbox";
 import { Field } from "formik";
 
 type CheckboxProps = {
@@ -11,10 +11,15 @@ type CheckboxProps = {
 
 const Checkbox = ({ label, id, name, className, disabled }: CheckboxProps) => {
   return (
-    <div className={clsx("checkbox", className)}>
-      <label for={id}>{label}</label>
-      <Field type="checkbox" name={name} id={id} disabled={disabled} />
-    </div>
+    <Field
+      type="checkbox"
+      name={name}
+      id={id}
+      disabled={disabled}
+      as={CheckboxBase}
+      label={label}
+      className={className}
+    />
   );
 };
 
