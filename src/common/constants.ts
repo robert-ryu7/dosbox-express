@@ -1,1 +1,1 @@
-export const N = "\r\n";
+export const N = "\n";

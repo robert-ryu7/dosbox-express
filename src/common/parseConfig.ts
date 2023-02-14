@@ -2,7 +2,7 @@ import { Config, ConfigCategoryData } from "../types";
 import { N } from "./constants";
 
 const parseConfig = (text: string): Config => {
-  const lines = text.split(N);
+  const lines = text.replaceAll("\r\n", N).split(N);
   let categoryName = "";
   let comments = "";
   let autoexec: string[] = [];
