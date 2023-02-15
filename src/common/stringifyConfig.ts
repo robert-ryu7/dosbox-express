@@ -36,7 +36,7 @@ const stringifyConfig = (config: Config): string => {
   result += "[autoexec]" + N;
   result += config.autoexec;
 
-  return result;
+  return result.replaceAll(N, "\r\n");
 };
 
 export default stringifyConfig;
