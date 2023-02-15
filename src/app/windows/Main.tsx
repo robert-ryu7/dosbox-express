@@ -1,23 +1,22 @@
-import { useLayoutEffect, useMemo, useState } from "preact/hooks";
-import { invoke } from "@tauri-apps/api";
-import { message, confirm } from "@tauri-apps/api/dialog";
-
-import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
-import { Game, WindowProps } from "../../types";
 import Button from "../../components/Button";
-import useStorage from "../../hooks/useStorage";
-import mainColumnsStorage from "../../storage/mainColumnsStorage";
 import DataTable, { DataTableColumn } from "../../components/DataTable";
-import AddGame from "../dialogs/AddGame";
-import { useRunningGames } from "../contexts/runningGamesContext";
-import EditGame from "../dialogs/EditGame";
-import ConfigureGame from "../dialogs/ConfigureGame";
+import Divider from "../../components/Divider";
 import Outset from "../../components/Outset";
 import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
 import fetchGameConfig from "../../fetchers/fetchGameConfig";
+import useStorage from "../../hooks/useStorage";
+import mainColumnsStorage from "../../storage/mainColumnsStorage";
+import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
+import { Game, WindowProps } from "../../types";
+import { useRunningGames } from "../contexts/runningGamesContext";
+import AddOrEditGame from "../dialogs/AddOrEditGame";
+import ConfigureGame from "../dialogs/ConfigureGame";
 import Settings from "../dialogs/Settings";
-import Divider from "../../components/Divider";
 import Tools from "../dialogs/Tools";
+
+import { invoke } from "@tauri-apps/api";
+import { confirm, message } from "@tauri-apps/api/dialog";
+import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 
 const getGameKey = (game: Game) => game.id;
 
@@ -25,8 +24,7 @@ const Main = (_: WindowProps) => {
   const runningGames = useRunningGames();
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showTools, setShowTools] = useState<boolean>(false);
-  const [showAddGameDialog, setShowAddGameDialog] = useState<boolean>(false);
-  const [editGameDialogTarget, setEditGameDialogTarget] = useState<Game | null>(null);
+  const [gameDialogTarget, setGameDialogTarget] = useState<[number | null, Omit<Game, "id">] | null>(null);
   const [configureGameDialogTarget, setConfigureGameDialogTarget] = useState<{
     id: number;
     baseConfig: string;
@@ -112,7 +110,7 @@ const Main = (_: WindowProps) => {
             disabled={selection.length !== 1}
             onClick={() => {
               const game = games.find((game) => game.id === selection[0]);
-              if (game) setEditGameDialogTarget(game);
+              if (game) setGameDialogTarget([game.id, game]);
             }}
           >
             Edit
@@ -145,15 +143,20 @@ const Main = (_: WindowProps) => {
             Start
           </Button>
           <Divider />
-          <Button onClick={() => setShowAddGameDialog(true)}>Add</Button>
+          <Button onClick={() => setGameDialogTarget([null, { title: "", config_path: "" }])}>Add</Button>
           <Button onClick={() => setShowTools(true)}>Tools</Button>
           <Button onClick={() => setShowSettings(true)}>Settings</Button>
         </div>
       </Outset>
       {showSettings && <Settings show onHide={() => setShowSettings(false)} />}
       {showTools && <Tools show onHide={() => setShowTools(false)} />}
-      <AddGame show={showAddGameDialog} onHide={() => setShowAddGameDialog(false)} />
-      <EditGame game={editGameDialogTarget} onHide={() => setEditGameDialogTarget(null)} />
+      {gameDialogTarget && (
+        <AddOrEditGame
+          id={gameDialogTarget[0]}
+          initialValues={gameDialogTarget[1]}
+          onHide={() => setGameDialogTarget(null)}
+        />
+      )}
       {configureGameDialogTarget && (
         <ConfigureGame {...configureGameDialogTarget} onHide={() => setConfigureGameDialogTarget(null)} />
       )}
