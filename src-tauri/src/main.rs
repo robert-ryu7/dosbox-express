@@ -116,12 +116,15 @@ async fn run_game(
     let config_path = resolve_relative_path(&app, &game.config_path)?;
     let mount_path = config_path.parent().ok_or("Failed to find parent path")?;
     let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
+    let base_conf_path = resolve_relative_path(&app, "base.conf")?;
 
     match subprocess::Exec::cmd("cmd")
         .detached()
         .arg("/c")
         .arg(dosbox_path)
         .arg(mount_path)
+        .arg("-conf")
+        .arg(base_conf_path)
         .arg("-conf")
         .arg(config_path)
         .popen()
