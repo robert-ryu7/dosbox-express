@@ -9,60 +9,68 @@ use diesel::sql_types::Text;
 use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dosbox_express::models::{Game, NewGame, Setting};
-use dosbox_express::schema::games::dsl::games;
-use dosbox_express::schema::settings::dsl::settings;
-use dotenvy::dotenv;
-use std::collections::HashMap;
-use std::sync::Mutex;
-use std::thread;
-use subprocess::Exec;
+use dosbox_express::schema::{games, settings};
 use tauri::Manager;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
-struct RunningGames(Mutex<HashMap<i32, u32>>);
+struct RunningGames(std::sync::Mutex<std::collections::HashMap<i32, u32>>);
 
-fn get_dosbox_path() -> Result<std::path::PathBuf, String> {
-    let path = std::env::var("DOSBOX_PATH").expect("DOSBOX_PATH must be set");
+struct DbConnection {
+    db: std::sync::Mutex<SqliteConnection>,
+}
 
-    return dunce::canonicalize(path).or_else(|err| Err(err.to_string()));
+fn resolve_relative_path(
+    app: &tauri::AppHandle,
+    relative_path: &str,
+) -> Result<std::path::PathBuf, String> {
+    let resource_dir = app
+        .path_resolver()
+        .resource_dir()
+        .ok_or("Failed to resolve resource directory")?;
+    let resolved_path =
+        std::path::PathBuf::from(dunce::simplified(&resource_dir.join(relative_path)));
+
+    return Ok(resolved_path);
 }
 
 #[tauri::command]
 fn get_game_config(
-    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    app: tauri::AppHandle,
+    state: tauri::State<DbConnection>,
     id: i32,
 ) -> Result<String, String> {
-    let mut connection = state
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
-
-    let game = games
-        .filter(dosbox_express::schema::games::id.eq(id))
+        .or(Err("Failed to acquire database connection"))?;
+    let game = games::dsl::games
+        .filter(games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
+    let config_path = resolve_relative_path(&app, &game.config_path)?;
 
-    std::fs::read_to_string(game.config_path).or_else(|err| Err(err.to_string()))
+    return std::fs::read_to_string(config_path).or_else(|err| Err(err.to_string()));
 }
 
 #[tauri::command]
 fn update_game_config(
-    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    app: tauri::AppHandle,
+    state: tauri::State<DbConnection>,
     id: i32,
     config: String,
 ) -> Result<(), String> {
-    let mut connection = state
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
-
-    let game = games
-        .filter(dosbox_express::schema::games::id.eq(id))
+        .or(Err("Failed to acquire database connection"))?;
+    let game = games::dsl::games
+        .filter(games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
+    let config_path = resolve_relative_path(&app, &game.config_path)?;
 
-    std::fs::write(game.config_path, config).or_else(|err| Err(err.to_string()))
+    return std::fs::write(config_path, config).or_else(|err| Err(err.to_string()));
 }
 
 #[tauri::command]
@@ -77,16 +85,18 @@ fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
 }
 
 #[tauri::command]
-fn make_relative_path(path: String) -> Option<String> {
-    let current_dir = std::env::current_dir().unwrap();
-    return pathdiff::diff_paths(path, current_dir)
-        .and_then(|path| path.to_str().and_then(|str| Some(String::from(str))));
+fn make_relative_path(app: tauri::AppHandle, path: String) -> Result<Option<String>, String> {
+    let base_path = resolve_relative_path(&app, ".")?;
+
+    return Ok(
+        pathdiff::diff_paths(path, base_path).and_then(|d| Some(d.to_string_lossy().to_string()))
+    );
 }
 
 #[tauri::command]
 async fn run_game(
     app: tauri::AppHandle,
-    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    state: tauri::State<'_, DbConnection>,
     id: i32,
 ) -> Result<(), String> {
     let running_games = app.state::<RunningGames>();
@@ -94,34 +104,30 @@ async fn run_game(
         return Err(format!("Game with id {} has already started", id));
     }
 
-    let mut connection = state
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
-    let game = games
-        .filter(dosbox_express::schema::games::id.eq(id))
+    let game = games::dsl::games
+        .filter(games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
-    let resolved_config_path =
-        dunce::canonicalize(&game.config_path).or_else(|err| Err(err.to_string()))?;
+    let config_path = resolve_relative_path(&app, &game.config_path)?;
+    let mount_path = config_path.parent().ok_or("Failed to find parent path")?;
+    let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
 
-    let parent_path = resolved_config_path
-        .parent()
-        .ok_or("Failed to find parent path")?;
-    let dosbox_path = get_dosbox_path()?;
-
-    match Exec::cmd("cmd")
+    match subprocess::Exec::cmd("cmd")
         .detached()
         .arg("/c")
         .arg(dosbox_path)
-        .arg(parent_path)
+        .arg(mount_path)
         .arg("-conf")
-        .arg(resolved_config_path)
+        .arg(config_path)
         .popen()
     {
         Ok(mut popen) => {
-            thread::spawn(move || {
+            std::thread::spawn(move || {
                 let pid = popen.pid().unwrap();
                 println!("Subprocess {} has started", pid);
                 let running_games = app.state::<RunningGames>();
@@ -169,10 +175,10 @@ async fn run_game(
 }
 
 #[tauri::command]
-async fn run_dosbox(params: String) -> Result<String, String> {
-    let dosbox_path = get_dosbox_path()?;
+async fn run_dosbox(app: tauri::AppHandle, params: String) -> Result<String, String> {
+    let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
 
-    let capture_data = Exec::cmd("cmd")
+    let capture_data = subprocess::Exec::cmd("cmd")
         .detached()
         .arg("/c")
         .arg(dosbox_path)
@@ -190,43 +196,42 @@ async fn run_dosbox(params: String) -> Result<String, String> {
 #[tauri::command]
 fn create_game(
     app: tauri::AppHandle,
-    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    state: tauri::State<DbConnection>,
     title: &str,
     config_path: &str,
-) -> () {
-    let mut connection = state
+) -> Result<(), String> {
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
     let new_game = NewGame { title, config_path };
 
-    diesel::insert_into(games::table())
+    diesel::insert_into(games::dsl::games::table())
         .values(&new_game)
         .execute(connection)
         .expect("Error saving new game");
 
     app.emit_all("games_changed", "create_game").unwrap();
+
+    return Ok(());
 }
 
 #[tauri::command]
 fn update_game(
     app: tauri::AppHandle,
-    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    state: tauri::State<DbConnection>,
     id: i32,
     title: &str,
     config_path: &str,
 ) -> Result<(), String> {
-    let mut connection = state
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
-    diesel::update(games.filter(dosbox_express::schema::games::id.eq(id)))
-        .set((
-            dosbox_express::schema::games::title.eq(title),
-            dosbox_express::schema::games::config_path.eq(config_path),
-        ))
+    diesel::update(games::dsl::games.filter(games::id.eq(id)))
+        .set((games::title.eq(title), games::config_path.eq(config_path)))
         .execute(connection)
         .or(Err("Failed to update game"))?;
 
@@ -236,13 +241,13 @@ fn update_game(
 }
 
 #[tauri::command]
-fn get_games(state: tauri::State<'_, Mutex<SqliteConnection>>) -> Result<Vec<Game>, String> {
-    let mut connection = state
+fn get_games(state: tauri::State<DbConnection>) -> Result<Vec<Game>, String> {
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
-    games
+    games::dsl::games
         .load::<Game>(connection)
         .or(Err("Error loading games".to_string()))
 }
@@ -250,15 +255,15 @@ fn get_games(state: tauri::State<'_, Mutex<SqliteConnection>>) -> Result<Vec<Gam
 #[tauri::command]
 fn delete_games(
     app: tauri::AppHandle,
-    state: tauri::State<'_, Mutex<SqliteConnection>>,
+    state: tauri::State<DbConnection>,
     ids: Vec<i32>,
 ) -> Result<(), String> {
-    let mut connection = state
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
-    diesel::delete(games.filter(dosbox_express::schema::games::id.eq_any(ids)))
+    diesel::delete(games::dsl::games.filter(games::id.eq_any(ids)))
         .execute(connection)
         .or(Err("Error deleting games"))?;
 
@@ -268,13 +273,13 @@ fn delete_games(
 }
 
 #[tauri::command]
-fn get_settings(state: tauri::State<'_, Mutex<SqliteConnection>>) -> Result<Vec<Setting>, String> {
-    let mut connection = state
+fn get_settings(state: tauri::State<DbConnection>) -> Result<Vec<Setting>, String> {
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
-    settings
+    settings::dsl::settings
         .load::<Setting>(connection)
         .or(Err("Error loading settings".to_string()))
 }
@@ -282,13 +287,13 @@ fn get_settings(state: tauri::State<'_, Mutex<SqliteConnection>>) -> Result<Vec<
 #[tauri::command]
 fn update_settings(
     app: tauri::AppHandle,
-    state: tauri::State<'_, Mutex<diesel::sqlite::SqliteConnection>>,
+    state: tauri::State<DbConnection>,
     changed_settings: Vec<dosbox_express::models::UpsertSetting>,
 ) -> Result<(), String> {
-    let mut connection = state
+    let connection = &mut *state
+        .db
         .lock()
-        .expect("Database connection was not found in state");
-    let connection = &mut *connection;
+        .or(Err("Failed to acquire database connection"))?;
 
     connection.transaction::<_, diesel::result::Error, _>(|conn| {
         for changed_setting in changed_settings {
@@ -305,7 +310,7 @@ fn update_settings(
         Ok(())
     }).or(Err("Failed to update settings".to_string()))?;
 
-    let payload = settings
+    let payload = settings::dsl::settings
         .load::<Setting>(connection)
         .or(Err("Error loading settings".to_string()))?;
 
@@ -315,30 +320,29 @@ fn update_settings(
 }
 
 fn main() {
-    dotenv().ok();
+    dotenvy::dotenv().ok();
 
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let mut connection = SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
-    connection
-        .run_pending_migrations(MIGRATIONS)
-        .expect("Failed to establish database connection");
+    let context = tauri::generate_context!();
+    let database_url =
+        tauri::utils::platform::resource_dir(context.package_info(), &tauri::utils::Env::default())
+            .and_then(|resource_dir| Ok(resource_dir.join("db.sqlite")))
+            .unwrap();
+    let mut connection = SqliteConnection::establish(&database_url.to_string_lossy()).unwrap();
+
+    connection.run_pending_migrations(MIGRATIONS).unwrap();
 
     tauri::Builder::default()
+        .manage(DbConnection {
+            db: std::sync::Mutex::new(connection),
+        })
+        .manage(RunningGames(Default::default()))
         .setup(|app| {
-            let dosbox_path = get_dosbox_path()?;
-            let resource_dir = app
-                .path_resolver()
-                .resource_dir()
-                .ok_or("Failed to resolve resource directory")
-                .and_then(|path| {
-                    dunce::canonicalize(path).or(Err("Failed to canonicalize resource directory"))
-                })?;
-            let base_conf_path = resource_dir.join("base.conf");
+            let dosbox_path = resolve_relative_path(&app.handle(), "dosbox/dosbox.exe").unwrap();
+            let base_conf_path = resolve_relative_path(&app.handle(), "base.conf").unwrap();
 
-            if !base_conf_path.exists() {
+            if !std::path::Path::new(&base_conf_path).exists() {
                 print!("No base configuration found. Creating a new one...");
-                Exec::cmd("cmd")
+                subprocess::Exec::cmd("cmd")
                     .arg("/c")
                     .arg(dosbox_path)
                     .arg("-c")
@@ -347,13 +351,12 @@ fn main() {
                         base_conf_path.to_string_lossy()
                     ))
                     .arg("-exit")
-                    .join()?;
+                    .join()
+                    .unwrap();
                 println!("done");
             }
             Ok(())
         })
-        .manage(std::sync::Mutex::new(connection))
-        .manage(RunningGames(Default::default()))
         .invoke_handler(tauri::generate_handler![
             get_game_config,
             update_game_config,
@@ -368,6 +371,6 @@ fn main() {
             get_settings,
             update_settings
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 }

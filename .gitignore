@@ -26,8 +26,8 @@ dist-ssr
 # Project specific files
 .env
 db.sqlite
-dosbox
-games
-src-tauri/stderr.txt
-src-tauri/stdout.txt
-notes
+/src-tauri/dosbox
+/src-tauri/games
+/src-tauri/stderr.txt
+/src-tauri/stdout.txt
+/notes

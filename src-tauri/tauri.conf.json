@@ -41,7 +41,10 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "dosbox",
+        "games"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {
