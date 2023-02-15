@@ -2,7 +2,7 @@ import Button from "../../components/Button";
 import Dialog from "../../components/Dialog";
 import Outset from "../../components/Outset";
 import { diffLines } from "diff";
-import { useMemo } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 import Inset from "../../components/Inset";
 import OutsetHead from "../../components/OutsetHead";
 
@@ -14,14 +14,23 @@ type ConfigChangesConfirmationProps = {
 };
 
 const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
+  const diffRef = useRef<HTMLDivElement>(null);
   const diff = useMemo(() => diffLines(props.left, props.right), [props.left, props.right]);
+
+  useEffect(() => {
+    const firstPartIndex = diff.findIndex((part) => part.added || part.removed);
+    const element = diffRef.current?.children.item(firstPartIndex);
+    if (element instanceof HTMLDivElement) {
+      element.scrollIntoView({ block: "center" });
+    }
+  }, [diff]);
 
   return (
     <Dialog show onHide={props.onHide}>
       <div style="width: calc(100vw - 64px); height: calc(100vh - 64px); display: flex; flex-direction: column;">
         <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; gap: 4px;">
           <OutsetHead>Confirm changes</OutsetHead>
-          <Inset style="flex: 1 1 auto; display: grid; grid-auto-rows: min-content;">
+          <Inset rootRef={diffRef} style="flex: 1 1 auto; display: grid; grid-auto-rows: min-content;">
             {diff.map((part, index) => (
               <div
                 key={index}
