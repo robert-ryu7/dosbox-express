@@ -43,7 +43,8 @@
       },
       "resources": [
         "dosbox",
-        "games"
+        "games",
+        "sqlite3.dll"
       ],
       "shortDescription": "",
       "targets": "all",
