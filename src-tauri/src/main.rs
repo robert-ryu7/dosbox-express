@@ -3,6 +3,9 @@
     windows_subsystem = "windows"
 )]
 
+use std::ops::Deref;
+use std::str::FromStr;
+
 use diesel::associations::HasTable;
 use diesel::prelude::*;
 use diesel::sql_types::Text;
@@ -16,8 +19,43 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 struct RunningGames(std::sync::Mutex<std::collections::HashMap<i32, u32>>);
 
+struct DefaultConfPath(std::path::PathBuf);
+
 struct DbConnection {
     db: std::sync::Mutex<SqliteConnection>,
+}
+
+fn strip_trailing_nl(input: &mut String) {
+    let new_len = input
+        .char_indices()
+        .rev()
+        .find(|(_, c)| !matches!(c, '\n' | '\r'))
+        .map_or(0, |(i, _)| i + 1);
+    if new_len != input.len() {
+        input.truncate(new_len);
+    }
+}
+
+fn get_default_conf_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
+
+    let capture_data = subprocess::Exec::cmd("cmd")
+        .detached()
+        .arg("/c")
+        .arg(dosbox_path)
+        .arg("-printconf")
+        .capture()
+        .or_else(|err| Err(err.to_string()))?;
+
+    if capture_data.success() {
+        let mut p = capture_data.stdout_str();
+        strip_trailing_nl(&mut p);
+        let path = std::path::PathBuf::from_str(&p).unwrap();
+        let resolved_path = std::path::PathBuf::from(dunce::simplified(&path));
+        return Ok(resolved_path);
+    } else {
+        return Err(capture_data.stderr_str());
+    }
 }
 
 fn resolve_relative_path(
@@ -32,6 +70,12 @@ fn resolve_relative_path(
         std::path::PathBuf::from(dunce::simplified(&resource_dir.join(relative_path)));
 
     return Ok(resolved_path);
+}
+
+#[tauri::command]
+fn get_default_config(default_conf_path: tauri::State<DefaultConfPath>) -> Result<String, String> {
+    return std::fs::read_to_string(&default_conf_path.deref().0)
+        .or_else(|err| Err(err.to_string()));
 }
 
 #[tauri::command]
@@ -178,7 +222,7 @@ async fn run_game(
 }
 
 #[tauri::command]
-async fn run_dosbox(app: tauri::AppHandle, params: String) -> Result<String, String> {
+fn run_dosbox(app: tauri::AppHandle, params: String) -> Result<String, String> {
     let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
 
     let capture_data = subprocess::Exec::cmd("cmd")
@@ -340,6 +384,9 @@ fn main() {
         })
         .manage(RunningGames(Default::default()))
         .setup(|app| {
+            app.manage(DefaultConfPath(
+                get_default_conf_path(&app.handle()).unwrap(),
+            ));
             let dosbox_path = resolve_relative_path(&app.handle(), "dosbox/dosbox.exe").unwrap();
             let base_conf_path = resolve_relative_path(&app.handle(), "base.conf").unwrap();
 
@@ -361,6 +408,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_default_config,
             get_game_config,
             update_game_config,
             get_running_games,

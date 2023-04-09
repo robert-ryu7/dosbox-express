@@ -3,6 +3,7 @@ import DataTable, { DataTableColumn } from "../../components/DataTable";
 import Divider from "../../components/Divider";
 import Outset from "../../components/Outset";
 import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
+import fetchDefaultConfig from "../../fetchers/fetchDefaultConfig";
 import fetchGameConfig from "../../fetchers/fetchGameConfig";
 import useStorage from "../../hooks/useStorage";
 import mainColumnsStorage from "../../storage/mainColumnsStorage";
@@ -27,6 +28,7 @@ const Main = (_: WindowProps) => {
   const [gameDialogTarget, setGameDialogTarget] = useState<[number | null, Omit<Game, "id">] | null>(null);
   const [configureGameDialogTarget, setConfigureGameDialogTarget] = useState<{
     id: number;
+    defaultConfig: string;
     baseConfig: string;
     gameConfig: string;
   } | null>(null);
@@ -120,9 +122,12 @@ const Main = (_: WindowProps) => {
             onClick={async () => {
               try {
                 const id = selection[0];
-                const baseConfig = await fetchBaseConfig();
-                const gameConfig = await fetchGameConfig(id);
-                setConfigureGameDialogTarget({ id, baseConfig, gameConfig });
+                const [defaultConfig, baseConfig, gameConfig] = await Promise.all([
+                  fetchDefaultConfig(),
+                  fetchBaseConfig(),
+                  fetchGameConfig(id),
+                ]);
+                setConfigureGameDialogTarget({ id, defaultConfig, baseConfig, gameConfig });
               } catch (err: unknown) {
                 message(String(err), { type: "error" });
               }

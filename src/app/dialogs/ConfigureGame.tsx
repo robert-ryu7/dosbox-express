@@ -21,6 +21,7 @@ import Checkbox from "../../components/Checkbox";
 
 type ConfigureGameProps = {
   id: number;
+  defaultConfig: string;
   baseConfig: string;
   gameConfig: string;
   onHide: () => void;
@@ -35,6 +36,7 @@ const resolveCategorySettings = (config: Config, baseConfig: Config, category: s
 
 const ConfigureGame = (props: ConfigureGameProps) => {
   const settings = useSettings();
+  const defaultConfig = useMemo(() => parseConfig(props.defaultConfig), [props.defaultConfig]);
   const baseConfig = useMemo(() => parseConfig(props.baseConfig), [props.baseConfig]);
   const gameConfig = useMemo(() => parseConfig(props.gameConfig), [props.gameConfig]);
   const [selection, setSelection] = useState<string[]>([]);
@@ -59,6 +61,9 @@ const ConfigureGame = (props: ConfigureGameProps) => {
       message(String(err), { type: "error" });
     }
   };
+
+  // TODO: merge with base?
+  console.log(defaultConfig);
 
   return (
     <>
