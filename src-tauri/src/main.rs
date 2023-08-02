@@ -34,6 +34,16 @@ fn resolve_relative_path(
     return Ok(resolved_path);
 }
 
+fn get_dosbox_exec(app: &tauri::AppHandle) -> Result<subprocess::Exec, String> {
+    if cfg!(windows) {
+        let path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
+        return Ok(subprocess::Exec::cmd("cmd").detached().arg("/c").arg(path));
+    } else {
+        let path = resolve_relative_path(&app, "dosbox/dosbox")?;
+        return Ok(subprocess::Exec::cmd(path).detached());
+    }
+}
+
 #[tauri::command]
 fn get_game_config(
     app: tauri::AppHandle,
@@ -115,13 +125,10 @@ async fn run_game(
         .or_else(|err| Err(err.to_string()))?;
     let config_path = resolve_relative_path(&app, &game.config_path)?;
     let mount_path = config_path.parent().ok_or("Failed to find parent path")?;
-    let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
     let base_conf_path = resolve_relative_path(&app, "base.conf")?;
+    let exec = get_dosbox_exec(&app)?;
 
-    match subprocess::Exec::cmd("cmd")
-        .detached()
-        .arg("/c")
-        .arg(dosbox_path)
+    match exec
         .arg(mount_path)
         .arg("-conf")
         .arg(base_conf_path)
@@ -179,12 +186,8 @@ async fn run_game(
 
 #[tauri::command]
 async fn run_dosbox(app: tauri::AppHandle, params: String) -> Result<String, String> {
-    let dosbox_path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
-
-    let capture_data = subprocess::Exec::cmd("cmd")
-        .detached()
-        .arg("/c")
-        .arg(dosbox_path)
+    let exec = get_dosbox_exec(&app)?;
+    let capture_data = exec
         .arg(params)
         .capture()
         .or_else(|err| Err(err.to_string()))?;
@@ -340,14 +343,11 @@ fn main() {
         })
         .manage(RunningGames(Default::default()))
         .setup(|app| {
-            let dosbox_path = resolve_relative_path(&app.handle(), "dosbox/dosbox.exe").unwrap();
             let base_conf_path = resolve_relative_path(&app.handle(), "base.conf").unwrap();
-
             if !std::path::Path::new(&base_conf_path).exists() {
                 print!("No base configuration found. Creating a new one...");
-                subprocess::Exec::cmd("cmd")
-                    .arg("/c")
-                    .arg(dosbox_path)
+                let exec = get_dosbox_exec(&app.handle()).unwrap();
+                exec
                     .arg("-c")
                     .arg(format!(
                         "config -writeconf {}",
