@@ -8,7 +8,7 @@ import Input from "../../components/Input";
 import { Config, ConfigCategoryData } from "../../types";
 import TextArea from "../../components/TextArea";
 import stringifyConfig from "../../common/stringifyConfig";
-import { confirm, message } from "@tauri-apps/api/dialog";
+import { confirm } from "@tauri-apps/api/dialog";
 import AddCategory from "./AddCategory";
 import AddSetting from "./AddSetting";
 import Divider from "../../components/Divider";
@@ -18,6 +18,7 @@ import parseConfig from "../../common/parseConfig";
 import OutsetHead from "../../components/OutsetHead";
 import { invoke } from "@tauri-apps/api";
 import Checkbox from "../../components/Checkbox";
+import attempt from "../../common/attempt";
 
 type ConfigureGameProps = {
   id: number;
@@ -51,14 +52,10 @@ const ConfigureGame = (props: ConfigureGameProps) => {
     return [...set];
   }, [baseConfig, config]);
 
-  const saveChanges = async (config: string) => {
-    try {
-      await invoke("update_game_config", { id: props.id, config });
-      props.onHide();
-    } catch (err: unknown) {
-      message(String(err), { type: "error" });
-    }
-  };
+  const saveChanges = attempt(async (config: string) => {
+    await invoke("update_game_config", { id: props.id, config });
+    props.onHide();
+  });
 
   return (
     <>

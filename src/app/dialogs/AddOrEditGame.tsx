@@ -1,3 +1,4 @@
+import attempt from "../../common/attempt";
 import Button from "../../components/Button";
 import Dialog from "../../components/Dialog";
 import Form from "../../components/formik/Form";
@@ -6,7 +7,7 @@ import Outset from "../../components/Outset";
 import { useSettings } from "../contexts/settingsContext";
 
 import { invoke } from "@tauri-apps/api";
-import { message, open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/api/dialog";
 import { resolveResource } from "@tauri-apps/api/path";
 import { FormikContext, useFormik } from "formik";
 import * as Yup from "yup";
@@ -54,37 +55,33 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
               placeholder="Path to DOSBox config file"
               after={
                 <Button
-                  onClick={async () => {
-                    try {
-                      let path = await open({
-                        defaultPath: await resolveResource("games"),
-                        multiple: false,
-                        filters: [
-                          {
-                            name: "All files",
-                            extensions: ["*"],
-                          },
-                          {
-                            name: "DOSBox configuration file",
-                            extensions: ["conf"],
-                          },
-                        ],
-                      });
-                      if (Array.isArray(path)) path = null;
+                  onClick={attempt(async () => {
+                    let path = await open({
+                      defaultPath: await resolveResource("games"),
+                      multiple: false,
+                      filters: [
+                        {
+                          name: "All files",
+                          extensions: ["*"],
+                        },
+                        {
+                          name: "DOSBox configuration file",
+                          extensions: ["conf"],
+                        },
+                      ],
+                    });
+                    if (Array.isArray(path)) path = null;
 
-                      if (
-                        path !== null &&
-                        settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1"
-                      ) {
-                        const relativePath = await invoke<string | null>("make_relative_path", { path });
-                        path = relativePath;
-                      }
-
-                      formik.setFieldValue("config_path", path ?? "");
-                    } catch (err: unknown) {
-                      message(String(err), { type: "error" });
+                    if (
+                      path !== null &&
+                      settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1"
+                    ) {
+                      const relativePath = await invoke<string | null>("make_relative_path", { path });
+                      path = relativePath;
                     }
-                  }}
+
+                    formik.setFieldValue("config_path", path ?? "");
+                  })}
                 >
                   Select
                 </Button>

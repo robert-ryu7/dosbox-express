@@ -25,6 +25,7 @@ type DataTableProps<T extends Record<string, unknown>, K> = {
   overscan?: number;
   selection: K[];
   onSelection: (selection: K[]) => void;
+  onActivation?: (key: K) => void;
   onColumnResize: (index: number, size: number) => void;
 };
 
@@ -50,6 +51,7 @@ const DataTable = <T extends Record<string, unknown>, K>({
   overscan = 0,
   selection,
   onSelection,
+  onActivation,
   onColumnResize,
 }: DataTableProps<T, K>) => {
   const [dragState, setDragState] = useState<DragState>();
@@ -174,6 +176,13 @@ const DataTable = <T extends Record<string, unknown>, K>({
                         onSelection([key]);
                       }
                     }}
+                    onDblClick={
+                      onActivation &&
+                      (() => {
+                        onSelection([key]);
+                        onActivation(key);
+                      })
+                    }
                     className={clsx(
                       "data-table__row",
                       selection.some((id) => id === key) && "data-table__row--selected"

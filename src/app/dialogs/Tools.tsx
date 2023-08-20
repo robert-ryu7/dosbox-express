@@ -8,9 +8,9 @@ import { useRunner } from "../contexts/runnerContext";
 
 import { resolveResource } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api";
-import { message } from "@tauri-apps/api/dialog";
 import { open } from "@tauri-apps/api/shell";
 import { useState } from "preact/hooks";
+import attempt from "../../common/attempt";
 
 type ToolsProps = {
   show: boolean;
@@ -38,19 +38,14 @@ const Tools = (props: ToolsProps) => {
             after={
               <Button
                 disabled={running}
-                onClick={async () => {
-                  if (running) return;
-
-                  try {
+                onClick={attempt(
+                  async () => {
                     setRunning(true);
                     const runOutput = await invoke<string>("run_dosbox", { params });
                     setLastRunOutput(runOutput);
-                  } catch (err: unknown) {
-                    message(String(err), { type: "error" });
-                  } finally {
-                    setRunning(false);
-                  }
-                }}
+                  },
+                  () => setRunning(false)
+                )}
               >
                 Run DOSBox
               </Button>
@@ -65,14 +60,10 @@ const Tools = (props: ToolsProps) => {
           <OutsetHead>Miscellaneous</OutsetHead>
           <div style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button
-              onClick={async () => {
-                try {
-                  const path = await resolveResource("base.conf");
-                  await open(path);
-                } catch (err: unknown) {
-                  message(String(err), { type: "error" });
-                }
-              }}
+              onClick={attempt(async () => {
+                const path = await resolveResource("base.conf");
+                await open(path);
+              })}
             >
               Open base config
             </Button>

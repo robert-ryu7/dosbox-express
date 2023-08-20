@@ -16,9 +16,10 @@ import Settings from "../dialogs/Settings";
 import Tools from "../dialogs/Tools";
 
 import { invoke } from "@tauri-apps/api";
-import { confirm, message } from "@tauri-apps/api/dialog";
+import { confirm } from "@tauri-apps/api/dialog";
 import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import { useDebounce } from "@uidotdev/usehooks";
+import attempt from "../../common/attempt";
 
 const getGameKey = (game: Game) => game.id;
 
@@ -78,6 +79,9 @@ const Main = (_: WindowProps) => {
         overscan={2}
         selection={selection}
         onSelection={setSelection}
+        onActivation={attempt(async (key) => {
+          if (!runningGames.includes(key)) await invoke("run_game", { id: key });
+        })}
         onColumnResize={(index, size) => {
           mainColumnsStorage.set({
             ...columnsConfig,
@@ -104,7 +108,7 @@ const Main = (_: WindowProps) => {
         <div style="flex: 0 0 auto; display: flex; gap: 2px;">
           <Button
             disabled={selection.length === 0}
-            onClick={async () => {
+            onClick={attempt(async () => {
               const message =
                 selection.length > 1
                   ? `Do you want to permanently delete ${selection.length} selected entries?`
@@ -116,7 +120,7 @@ const Main = (_: WindowProps) => {
                 invoke("delete_games", { ids: selection });
                 setSelection([]);
               }
-            }}
+            })}
           >
             Delete
           </Button>
@@ -131,28 +135,18 @@ const Main = (_: WindowProps) => {
           </Button>
           <Button
             disabled={selection.length !== 1}
-            onClick={async () => {
-              try {
-                const id = selection[0];
-                const baseConfig = await fetchBaseConfig();
-                const gameConfig = await fetchGameConfig(id);
-                setConfigureGameDialogTarget({ id, baseConfig, gameConfig });
-              } catch (err: unknown) {
-                message(String(err), { type: "error" });
-              }
-            }}
+            onClick={attempt(async () => {
+              const id = selection[0];
+              const baseConfig = await fetchBaseConfig();
+              const gameConfig = await fetchGameConfig(id);
+              setConfigureGameDialogTarget({ id, baseConfig, gameConfig });
+            })}
           >
             Config
           </Button>
           <Button
             disabled={selection.length !== 1 || runningGames.includes(selection[0])}
-            onClick={async () => {
-              try {
-                await invoke("run_game", { id: selection[0] });
-              } catch (err: unknown) {
-                message(String(err), { type: "error" });
-              }
-            }}
+            onClick={attempt(() => invoke("run_game", { id: selection[0] }))}
           >
             Start
           </Button>
