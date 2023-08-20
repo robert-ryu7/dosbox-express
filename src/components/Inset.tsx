@@ -3,7 +3,7 @@ import { MutableRef } from "preact/hooks";
 
 type InsetProps = {
   style?: string | JSX.CSSProperties;
-  children: ComponentChildren;
+  children?: ComponentChildren;
   rootRef?: MutableRef<HTMLDivElement | null>;
 };
 

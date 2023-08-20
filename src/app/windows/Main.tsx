@@ -1,6 +1,7 @@
 import Button from "../../components/Button";
 import DataTable, { DataTableColumn } from "../../components/DataTable";
 import Divider from "../../components/Divider";
+import Input from "../../components/Input";
 import Outset from "../../components/Outset";
 import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
 import fetchGameConfig from "../../fetchers/fetchGameConfig";
@@ -17,10 +18,13 @@ import Tools from "../dialogs/Tools";
 import { invoke } from "@tauri-apps/api";
 import { confirm, message } from "@tauri-apps/api/dialog";
 import { useLayoutEffect, useMemo, useState } from "preact/hooks";
+import { useDebounce } from "@uidotdev/usehooks";
 
 const getGameKey = (game: Game) => game.id;
 
 const Main = (_: WindowProps) => {
+  const [search, setSearch] = useState<string>("");
+  const debouncedSearch = useDebounce(search, 300);
   const runningGames = useRunningGames();
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showTools, setShowTools] = useState<boolean>(false);
@@ -44,16 +48,26 @@ const Main = (_: WindowProps) => {
 
   useLayoutEffect(() => {
     const handler = async () => {
-      setGames(await invoke("get_games"));
+      setGames(await invoke("get_games", { search: debouncedSearch === "" ? undefined : debouncedSearch.trim() }));
     };
 
     handler();
 
     return gamesChangedSubscription.subscribe(handler);
-  }, []);
+  }, [debouncedSearch]);
 
   return (
     <>
+      <Input
+        id="search"
+        placeholder="Search by title"
+        style="flex: 0 0 auto;"
+        padding="big"
+        border="none"
+        value={search}
+        onChange={(event) => setSearch(event.currentTarget.value)}
+      />
+      <Outset style="flex: 0 0 auto; border-width: 2px 0; padding: 0;" />
       <DataTable
         columns={columns}
         items={games}

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.1.0",
+    "@uidotdev/usehooks": "^2.1.0",
     "clsx": "^1.2.1",
     "diff": "^5.1.0",
     "formik": "^2.2.9",
@@ -27,6 +28,7 @@
     "@types/diff": "^5.0.2",
     "@types/node": "^18.7.14",
     "@types/tinycolor2": "^1.4.3",
+    "postcss-preset-env": "^9.1.1",
     "typescript": "^4.6.4",
     "vite": "^3.0.7"
   }

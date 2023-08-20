@@ -6,11 +6,20 @@ type InputProps = JSX.HTMLAttributes<HTMLInputElement> & {
   className?: string;
   after?: JSX.Element;
   style?: string | JSX.CSSProperties;
+  border?: "normal" | "none";
+  padding?: "normal" | "big";
 };
 
-const Input = ({ id, label, className, after, style, ...rest }: InputProps) => {
+const Input = ({ id, label, className, after, style, border = "normal", padding = "normal", ...rest }: InputProps) => {
+  const finalClassName = clsx(
+    "input",
+    border === "none" && "input--border-none",
+    padding === "big" && "input--padding-big",
+    className
+  );
+
   return (
-    <div className={clsx("input", className)} style={style}>
+    <div className={finalClassName} style={style}>
       {label && <label for={id}>{label}</label>}
       <div className="input__bottom">
         <input type="text" spellcheck={false} id={id} {...rest} />

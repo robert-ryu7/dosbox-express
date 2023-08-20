@@ -3,7 +3,7 @@ import { MutableRef } from "preact/hooks";
 
 type OutsetProps = {
   style?: string | JSX.CSSProperties;
-  children: ComponentChildren;
+  children?: ComponentChildren;
   rootRef?: MutableRef<HTMLDivElement | null>;
 };
 

@@ -262,6 +262,14 @@ body {
   outline: 1px dotted red;
 }
 
+.input--border-none input {
+  border: none;
+}
+
+.input--padding-big input {
+  padding: 8px;
+}
+
 // Dialog
 
 .dialog {

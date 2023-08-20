@@ -5,6 +5,7 @@
 
 use diesel::associations::HasTable;
 use diesel::prelude::*;
+use diesel::query_builder::AsQuery;
 use diesel::sql_types::Text;
 use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
@@ -247,13 +248,20 @@ fn update_game(
 }
 
 #[tauri::command]
-fn get_games(state: tauri::State<DbConnection>) -> Result<Vec<Game>, String> {
+fn get_games(state: tauri::State<DbConnection>, search: Option<&str>) -> Result<Vec<Game>, String> {
     let connection = &mut *state
         .db
         .lock()
         .or(Err("Failed to acquire database connection"))?;
 
-    games::dsl::games
+    let mut query = games::dsl::games.as_query().into_boxed();
+
+    if search.is_some() {
+        query =
+            diesel::QueryDsl::filter(query, games::title.like(format!("%{}%", search.unwrap())));
+    }
+
+    query
         .load::<Game>(connection)
         .or(Err("Error loading games".to_string()))
 }
@@ -347,8 +355,7 @@ fn main() {
             if !std::path::Path::new(&base_conf_path).exists() {
                 print!("No base configuration found. Creating a new one...");
                 let exec = get_dosbox_exec(&app.handle()).unwrap();
-                exec
-                    .arg("-c")
+                exec.arg("-c")
                     .arg(format!(
                         "config -writeconf {}",
                         base_conf_path.to_string_lossy()
