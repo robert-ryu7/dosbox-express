@@ -49,7 +49,12 @@ const Main = (_: WindowProps) => {
 
   useLayoutEffect(() => {
     const handler = async () => {
-      setGames(await invoke("get_games", { search: debouncedSearch === "" ? undefined : debouncedSearch.trim() }));
+      const games = await invoke<Game[]>("get_games", {
+        search: debouncedSearch === "" ? undefined : debouncedSearch.trim(),
+      });
+      setGames(games);
+      const keys = games.map((game) => game.id);
+      setSelection((s) => s.filter((key) => keys.includes(key)));
     };
 
     handler();
