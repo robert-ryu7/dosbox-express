@@ -112,6 +112,7 @@ body {
 
 .button:focus {
   outline: 1px dotted var(--color-front);
+  z-index: 1;
 }
 
 .button:not(:disabled):active > .button__content {
@@ -268,6 +269,56 @@ body {
 
 .input--padding-big input {
   padding: 8px;
+}
+
+// Select
+
+.select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.select__bottom {
+  display: flex;
+  gap: 4px;
+}
+
+.select select {
+  flex: 1 1 auto;
+  padding: 4px 24px 4px 8px;
+  font-size: 12px;
+  font-family: var(--font-family);
+  color: var(--color-front);
+  background-color: var(--color-back);
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE/NkkEOwCAIBHdfrr4cU5OSGpFYuMh9huwCkRwmeVwgEJEKoASjtBEhKGkkq3bwUzLgZ/lU4qFE4UVwEGeCTYEjWeCtwJCYsCv4SPAWZp36gk8MfqBi6QgdLaomjnlBvZkAAAAASUVORK5CYII=");
+  background-repeat: no-repeat;
+  background-size: 8px;
+  background-position: calc(100% - 8px) center;
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--color-primary-dark) var(--color-primary-bright) var(--color-primary-bright)
+    var(--color-primary-darker);
+  outline-offset: -4px;
+  border-radius: 0;
+  appearance: none;
+}
+
+.select option {
+  color: var(--color-front);
+  background: var(--color-back);
+}
+
+.select select:focus {
+  outline: 1px dotted var(--color-front);
+}
+
+.select select:disabled {
+  background: var(--color-input-disabled-bg);
+}
+
+.select.error select:not(:focus) {
+  outline: 1px dotted red;
 }
 
 // Dialog
@@ -471,4 +522,47 @@ body {
 
 .checkbox input:focus {
   outline: 1px dotted var(--color-front);
+}
+
+// Unique
+
+#main-search {
+  flex: 0 0 auto;
+}
+
+#main-data-table {
+  flex: 1 1 auto;
+}
+
+#main-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  border-width: 2px 0 0 0;
+}
+
+#main-toolbar__summary {
+  flex: 1 1 auto;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  align-self: center;
+}
+
+#main-toolbar__actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+}
+
+#main-search-separator,
+#main-toolbar-separator {
+  flex: 0 0 auto;
+  border-width: 2px 0;
+  padding: 0;
+}
+
+#main-toolbar-separator {
+  display: none;
 }

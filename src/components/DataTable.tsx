@@ -15,6 +15,7 @@ export type DataTableColumn = {
 };
 
 type DataTableProps<T extends Record<string, unknown>, K> = {
+  id?: string;
   columns: DataTableColumn[];
   items: T[];
   getItemKey: (item: T) => K;
@@ -41,6 +42,7 @@ const getGripPosition = (
   }, 0);
 
 const DataTable = <T extends Record<string, unknown>, K>({
+  id,
   columns,
   items,
   getItemKey,
@@ -118,6 +120,7 @@ const DataTable = <T extends Record<string, unknown>, K>({
 
   return (
     <div
+      id={id}
       className={clsx("data-table", className)}
       style={{
         ...style,

@@ -47,10 +47,10 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="title" id="title" label="Title" placeholder="Name of the game" />
+            <Input name="title" inputId="title" label="Title" placeholder="Name of the game" />
             <Input
               name="config_path"
-              id="config_path"
+              inputId="config_path"
               label="Config path"
               placeholder="Path to DOSBox config file"
               after={

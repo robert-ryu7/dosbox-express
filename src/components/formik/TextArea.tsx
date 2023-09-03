@@ -18,7 +18,7 @@ const TextArea = ({ label, id, name, className, disabled, placeholder, after }: 
   return (
     <TextAreaBase
       className={clsx(meta.touched && meta.error && "error", className)}
-      id={id}
+      textareaId={id}
       label={label}
       disabled={disabled}
       placeholder={placeholder}

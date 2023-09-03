@@ -1,31 +1,33 @@
 import clsx from "clsx";
-import InputBase from "../Input";
+import SelectBase from "../Select";
 import { useField } from "formik";
+import { ComponentChildren } from "preact";
 
-type InputProps = {
+type SelectProps = {
   label: string;
-  inputId: string;
+  selectId: string;
   name: string;
   className?: string;
   disabled?: boolean;
-  placeholder?: string;
   after?: JSX.Element;
+  children: ComponentChildren;
 };
 
-const Input = ({ label, inputId, name, className, disabled, placeholder, after }: InputProps) => {
+const Select = ({ label, selectId, name, className, disabled, after, children }: SelectProps) => {
   const [field, meta] = useField(name);
 
   return (
-    <InputBase
+    <SelectBase
       className={clsx(meta.touched && meta.error && "error", className)}
-      inputId={inputId}
+      selectId={selectId}
       label={label}
       disabled={disabled}
-      placeholder={placeholder}
       after={after}
       {...field}
-    />
+    >
+      {children}
+    </SelectBase>
   );
 };
 
-export default Input;
+export default Select;

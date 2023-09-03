@@ -26,9 +26,6 @@ dependencies:
   sass:
     specifier: ^1.56.1
     version: 1.56.1
-  tinycolor2:
-    specifier: ^1.6.0
-    version: 1.6.0
   yup:
     specifier: ^0.32.11
     version: 0.32.11
@@ -49,9 +46,6 @@ devDependencies:
   '@types/node':
     specifier: ^18.7.14
     version: 18.11.9
-  '@types/tinycolor2':
-    specifier: ^1.4.3
-    version: 1.4.3
   postcss-preset-env:
     specifier: ^9.1.1
     version: 9.1.1(postcss@8.4.19)
@@ -892,10 +886,6 @@ packages:
 
   /@types/node@18.11.9:
     resolution: {integrity: sha512-CRpX21/kGdzjOpFsZSkcrXMGIBWMGNIHXXBVFSH+ggkftxg+XYP20TESbh+zFvFj3EQOl5byk0HTRn1IL6hbqg==}
-    dev: true
-
-  /@types/tinycolor2@1.4.3:
-    resolution: {integrity: sha512-Kf1w9NE5HEgGxCRyIcRXR/ZYtDv0V8FVPtYHwLxl0O+maGX0erE77pQlD0gpP+/KByMZ87mOA79SjifhSB3PjQ==}
     dev: true
 
   /@uidotdev/usehooks@2.1.0(react-dom@18.2.0)(react@18.2.0):
@@ -1949,10 +1939,6 @@ packages:
 
   /tiny-warning@1.0.3:
     resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==}
-    dev: false
-
-  /tinycolor2@1.6.0:
-    resolution: {integrity: sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==}
     dev: false
 
   /to-fast-properties@2.0.0:

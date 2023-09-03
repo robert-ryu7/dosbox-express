@@ -8,7 +8,7 @@ import fetchGameConfig from "../../fetchers/fetchGameConfig";
 import useStorage from "../../hooks/useStorage";
 import mainColumnsStorage from "../../storage/mainColumnsStorage";
 import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
-import { Game, WindowProps } from "../../types";
+import { Game } from "../../types";
 import { useRunningGames } from "../contexts/runningGamesContext";
 import AddOrEditGame from "../dialogs/AddOrEditGame";
 import ConfigureGame from "../dialogs/ConfigureGame";
@@ -23,7 +23,7 @@ import attempt from "../../common/attempt";
 
 const getGameKey = (game: Game) => game.id;
 
-const Main = (_: WindowProps) => {
+const Main = () => {
   const [search, setSearch] = useState<string>("");
   const debouncedSearch = useDebounce(search, 300);
   const runningGames = useRunningGames();
@@ -65,22 +65,22 @@ const Main = (_: WindowProps) => {
   return (
     <>
       <Input
-        id="search"
+        id="main-search"
+        inputId="search"
         placeholder="Search by title"
-        style="flex: 0 0 auto;"
         padding="big"
         border="none"
         value={search}
         onChange={(event) => setSearch(event.currentTarget.value)}
       />
-      <Outset style="flex: 0 0 auto; border-width: 2px 0; padding: 0;" />
+      <Outset id="main-search-separator" />
       <DataTable
+        id="main-data-table"
         columns={columns}
         items={games}
         getItemKey={getGameKey}
         rowHeight={24}
         minColumnWidth={24}
-        style={{ flex: "1 1 auto" }}
         overscan={2}
         selection={selection}
         onSelection={setSelection}
@@ -94,23 +94,15 @@ const Main = (_: WindowProps) => {
           });
         }}
       />
-      <Outset style="flex: 0 0 auto; display: flex; gap: 2px; border-width: 2px 0 0 0;">
-        <div
-          style={{
-            padding: "0 8px",
-            flex: "1 1 auto",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            alignSelf: "center",
-          }}
-        >
+      <Outset id="main-toolbar-separator" />
+      <Outset id="main-toolbar">
+        <div id="main-toolbar__summary">
           {selection.length === 0 && "No selection"}
           {selection.length === 1 &&
             `Selected "${games.find((game) => game.id === selection[0])?.title ?? selection[0]}"`}
           {selection.length > 1 && `Selected ${selection.length} entries`}
         </div>
-        <div style="flex: 0 0 auto; display: flex; gap: 2px;">
+        <div id="main-toolbar__actions">
           <Button
             disabled={selection.length === 0}
             onClick={attempt(async () => {

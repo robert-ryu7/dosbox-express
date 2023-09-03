@@ -1,9 +1,11 @@
-const shiftPath = (path: string[]): string[] => {
-  const result = [...path];
-  result.shift();
-  return result;
-};
+const pathnameParts = window.location.pathname.split("/").slice(1);
+const PATH: { 0: string } & Record<number, string> = { 0: "" };
+let level = 0;
+while (true) {
+  const part = pathnameParts.shift();
+  if (part === undefined) break;
+  PATH[level] = part;
+  level++;
+}
 
-const PATH = shiftPath(window.location.pathname.split("/"));
-
-export { shiftPath, PATH };
+export { PATH };

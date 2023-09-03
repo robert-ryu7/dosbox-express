@@ -150,7 +150,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                   <Input
                     style="flex: 1;"
                     name="setting_value"
-                    id="setting_value"
+                    inputId="setting_value"
                     disabled={!selection[1]}
                     placeholder={baseConfig.categories[selection[0]]?.settings[selection[1]]}
                     value={config.categories[selection[0]]?.settings[selection[1]] ?? ""}
@@ -228,7 +228,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                     rows={6}
                     key={`${selection[0]}.comments`}
                     name={`${selection[0]}.comments`}
-                    id={`${selection[0]}.comments`}
+                    textareaId={`${selection[0]}.comments`}
                     label="Category comments"
                     value={config.categories[selection[0]]?.comments ?? ""}
                     onChange={(event) => {
@@ -244,7 +244,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                   />
                 )}
                 <Checkbox
-                  id="showBaseCategoryComments"
+                  inputId="showBaseCategoryComments"
                   label="Show base category comments"
                   checked={showBaseCategoryComments}
                   onChange={(event) => {
@@ -258,7 +258,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
             <TextArea
               rows={6}
               name="autoexec"
-              id="autoexec"
+              textareaId="autoexec"
               label="Autoexec"
               value={config.autoexec}
               onChange={(event) => {

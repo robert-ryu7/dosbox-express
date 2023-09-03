@@ -3,18 +3,18 @@ import { Field } from "formik";
 
 type CheckboxProps = {
   label: string;
-  id: string;
+  inputId: string;
   name: string;
   className?: string;
   disabled?: boolean;
 };
 
-const Checkbox = ({ label, id, name, className, disabled }: CheckboxProps) => {
+const Checkbox = ({ label, inputId, name, className, disabled }: CheckboxProps) => {
   return (
     <Field
       type="checkbox"
       name={name}
-      id={id}
+      id={inputId}
       disabled={disabled}
       as={CheckboxBase}
       label={label}

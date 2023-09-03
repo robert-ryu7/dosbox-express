@@ -1,8 +1,10 @@
+import { PATH } from "./common/path";
 import { render } from "preact";
 
 import "./main.scss";
-import "./common/yup";
 
 import App from "./app/App";
 
-render(<App />, document.getElementById("app") as HTMLElement);
+const app = document.getElementById("app") as HTMLElement;
+Object.entries(PATH).forEach(([key, value]) => app.setAttribute(`data-path-${key}`, value));
+render(<App />, app);

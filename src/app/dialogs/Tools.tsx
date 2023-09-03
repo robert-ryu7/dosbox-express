@@ -28,7 +28,7 @@ const Tools = (props: ToolsProps) => {
         <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">
           <OutsetHead>DOSBox runner</OutsetHead>
           <Input
-            id="arguments"
+            inputId="arguments"
             label="Command line parameters (optional)"
             placeholder="--list-glshaders"
             value={params}
@@ -53,7 +53,7 @@ const Tools = (props: ToolsProps) => {
           />
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <div>Last run output</div>
-            <Inset style="height: 240px;">{lastRunOutput}</Inset>
+            <Inset style="height: 200px;">{lastRunOutput}</Inset>
           </div>
         </Outset>
         <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">

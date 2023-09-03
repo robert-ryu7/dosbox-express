@@ -44,7 +44,7 @@ const AddSetting = (props: AddSettingProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="name" id="name" label="Name" placeholder="Name of the setting" />
+            <Input name="name" inputId="name" label="Name" placeholder="Name of the setting" />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button type="button" onClick={() => props.onHide()}>

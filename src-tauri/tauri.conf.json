@@ -12,9 +12,22 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true,
+      "dialog": {
+        "open": true,
+        "message": true,
+        "confirm": true
+      },
+      "shell": {
+        "all": true
+      },
+      "path": {
+        "all": true
+      },
       "fs": {
-        "scope": ["$RESOURCE/base.conf"]
+        "readDir": true,
+        "readFile": true,
+        "exists": true,
+        "scope": ["$RESOURCE/*"]
       }
     },
     "bundle": {
@@ -44,6 +57,7 @@
       "resources": [
         "dosbox",
         "games",
+        "themes",
         "sqlite3.dll"
       ],
       "shortDescription": "",
