@@ -13,22 +13,22 @@ const stringifyConfig = (config: Config): string => {
   }
 
   for (const categoryName in config.categories) {
+    const category = config.categories[categoryName];
+    if (!category.comments && Object.keys(category.settings).length === 0) continue;
+
     result += `[${categoryName}]` + N;
 
-    if (config.categories[categoryName].comments) {
-      result += config.categories[categoryName].comments
+    if (category.comments) {
+      result += category.comments
         .split(N)
         .map((line) => `#${line}`)
         .join(N);
       result += N + N;
     }
 
-    const padding = Object.keys(config.categories[categoryName].settings).reduce(
-      (acc, value) => Math.max(acc, value.length),
-      0
-    );
-    for (const settingName in config.categories[categoryName].settings) {
-      result += `${settingName.padEnd(padding)} = ${config.categories[categoryName].settings[settingName]}` + N;
+    const padding = Object.keys(category.settings).reduce((acc, value) => Math.max(acc, value.length), 0);
+    for (const settingName in category.settings) {
+      result += `${settingName.padEnd(padding)} = ${category.settings[settingName]}` + N;
     }
     result += N;
   }
