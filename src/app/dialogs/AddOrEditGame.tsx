@@ -7,8 +7,8 @@ import Outset from "../../components/Outset";
 import { useSettings } from "../contexts/settingsContext";
 
 import { invoke } from "@tauri-apps/api";
-import { open } from "@tauri-apps/api/dialog";
-import { resolveResource } from "@tauri-apps/api/path";
+import { confirm, open } from "@tauri-apps/api/dialog";
+import { extname, resolveResource } from "@tauri-apps/api/path";
 import { FormikContext, useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -68,9 +68,40 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
                           name: "DOSBox configuration file",
                           extensions: ["conf"],
                         },
+                        {
+                          name: "MS-DOS executable file",
+                          extensions: ["EXE", "COM", "exe", "com"],
+                        },
                       ],
                     });
                     if (Array.isArray(path)) path = null;
+
+                    if (path !== null) {
+                      switch (await extname(path)) {
+                        case "EXE":
+                        case "COM":
+                        case "exe":
+                        case "com": {
+                          if (
+                            await confirm(
+                              "You have selected an executable file, do you want to generate a basic DOSBox configuration for it?",
+                              {
+                                title: "Generate configuration file",
+                                type: "warning",
+                              }
+                            )
+                          ) {
+                            path = await invoke<string | null>("generate_game_config", { executablePath: path });
+                          } else {
+                            path = null;
+                          }
+                          break;
+                        }
+                        default: {
+                          break;
+                        }
+                      }
+                    }
 
                     if (
                       path !== null &&

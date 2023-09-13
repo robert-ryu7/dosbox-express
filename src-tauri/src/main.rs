@@ -46,6 +46,33 @@ fn get_dosbox_exec(app: &tauri::AppHandle) -> Result<subprocess::Exec, String> {
 }
 
 #[tauri::command]
+fn generate_game_config(executable_path: String) -> Result<String, String> {
+    match std::path::PathBuf::from(executable_path.clone()).file_name() {
+        Some(executable_file_name) => {
+            let mut conf_path_buf = std::path::PathBuf::from(executable_path.clone());
+            conf_path_buf.set_extension("conf");
+            let conf_path = conf_path_buf.to_string_lossy();
+
+            if !std::path::Path::new(&conf_path_buf).exists() {
+                match std::fs::write(
+                    &conf_path_buf,
+                    format!(
+                        "[autoexec]\n@ECHO OFF\nMOUNT C .\nC:\nCLS\n{}",
+                        executable_file_name.to_string_lossy()
+                    ),
+                ) {
+                    Ok(_) => {}
+                    Err(error) => return Err(error.to_string()),
+                }
+            }
+
+            return Ok(String::from(conf_path));
+        }
+        None => return Err("Failed to get executable file name".to_string()),
+    }
+}
+
+#[tauri::command]
 fn get_game_config(
     app: tauri::AppHandle,
     state: tauri::State<DbConnection>,
@@ -368,6 +395,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            generate_game_config,
             get_game_config,
             update_game_config,
             get_running_games,
