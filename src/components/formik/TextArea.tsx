@@ -10,9 +10,10 @@ type TextAreaProps = {
   disabled?: boolean;
   placeholder?: string;
   after?: JSX.Element;
+  rows?: number;
 };
 
-const TextArea = ({ label, id, name, className, disabled, placeholder, after }: TextAreaProps) => {
+const TextArea = ({ label, id, name, className, disabled, placeholder, after, rows }: TextAreaProps) => {
   const [field, meta] = useField(name);
 
   return (
@@ -23,6 +24,7 @@ const TextArea = ({ label, id, name, className, disabled, placeholder, after }: 
       disabled={disabled}
       placeholder={placeholder}
       after={after}
+      rows={rows}
       {...field}
     />
   );

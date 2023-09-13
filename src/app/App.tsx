@@ -58,9 +58,12 @@ function App() {
 
   if (settings === undefined || runningGames === undefined) return null;
 
+  const inlineCss = settings.find((setting) => setting.key === "inlineCss")?.value;
+
   return (
     <Fragment>
       <style type="text/css">{theme}</style>
+      {inlineCss && <style type="text/css">{inlineCss}</style>}
       <settingsContext.Provider value={settings}>
         <runnerContext.Provider value={runnerContextValue}>
           <runningGamesContext.Provider value={runningGames}>

@@ -11,17 +11,20 @@ import { exists, readDir, BaseDirectory } from "@tauri-apps/api/fs";
 import { useSettings } from "../contexts/settingsContext";
 import OutsetHead from "../../components/OutsetHead";
 import Select from "../../components/formik/Select";
+import TextArea from "../../components/formik/TextArea";
 
 type Values = {
   confirmConfigChanges: boolean;
   useRelativeConfigPathsWhenPossible: boolean;
   theme: string | undefined;
+  inlineCss: string | undefined;
 };
 
 const validationSchema: Yup.SchemaOf<Values> = Yup.object({
   confirmConfigChanges: Yup.bool().label("Confirm config changes").defined(),
   useRelativeConfigPathsWhenPossible: Yup.bool().label("Confirm config changes").defined(),
   theme: Yup.string().label("Theme").optional(),
+  inlineCss: Yup.string().label("Inline CSS").optional(),
 });
 
 const getThemes = async (): Promise<{ name: string; path: string }[]> => {
@@ -53,6 +56,7 @@ const Settings = (props: SettingsProps) => {
       useRelativeConfigPathsWhenPossible:
         settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1",
       theme: settings.find((setting) => setting.key === "theme")?.value ?? "",
+      inlineCss: settings.find((setting) => setting.key === "inlineCss")?.value ?? "",
     };
   }, [settings]);
   const formik = useFormik<Values>({
@@ -66,6 +70,7 @@ const Settings = (props: SettingsProps) => {
           { key: "confirmConfigChanges", value: values.confirmConfigChanges ? "1" : "0" },
           { key: "useRelativeConfigPathsWhenPossible", value: values.useRelativeConfigPathsWhenPossible ? "1" : "0" },
           { key: "theme", value: values.theme },
+          { key: "inlineCss", value: values.inlineCss },
         ],
       });
       props.onHide();
@@ -86,6 +91,13 @@ const Settings = (props: SettingsProps) => {
                 </option>
               ))}
             </Select>
+            <TextArea
+              rows={6}
+              name="inlineCss"
+              id="inlineCss"
+              label="Inline CSS"
+              placeholder={`dialog {\n  opacity: 0.5;\n}\n`}
+            />
           </Outset>
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Miscellaneous</OutsetHead>
