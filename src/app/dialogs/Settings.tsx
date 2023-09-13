@@ -78,7 +78,7 @@ const Settings = (props: SettingsProps) => {
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Visuals</OutsetHead>
-            <Select name="theme" selectId="theme" label="Theme" disabled={themes === undefined}>
+            <Select name="theme" selectId="theme" label="Theme">
               <option value="">Default</option>
               {themes?.map((theme) => (
                 <option key={theme.path} value={theme.path}>

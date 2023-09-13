@@ -72,6 +72,7 @@ const Main = () => {
         border="none"
         value={search}
         onChange={(event) => setSearch(event.currentTarget.value)}
+        autoFocus
       />
       <Outset id="main-search-separator" />
       <DataTable

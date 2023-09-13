@@ -10,10 +10,11 @@ type SelectProps = {
   className?: string;
   disabled?: boolean;
   after?: JSX.Element;
+  autoFocus?: boolean;
   children: ComponentChildren;
 };
 
-const Select = ({ label, selectId, name, className, disabled, after, children }: SelectProps) => {
+const Select = ({ label, selectId, name, className, disabled, after, autoFocus, children }: SelectProps) => {
   const [field, meta] = useField(name);
 
   return (
@@ -23,6 +24,7 @@ const Select = ({ label, selectId, name, className, disabled, after, children }:
       label={label}
       disabled={disabled}
       after={after}
+      autoFocus={autoFocus}
       {...field}
     >
       {children}
