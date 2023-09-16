@@ -1,8 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
-import { Storage } from "../storage/types";
+import Storage from "../storage/Storage";
 
 function useStorage<T>(storage: Storage<T>) {
-  const [data, setData] = useState<T | null>(storage.get());
+  const [data, setData] = useState<T>(storage.get());
 
   useEffect(() => storage.subscribe(setData), [storage]);
 

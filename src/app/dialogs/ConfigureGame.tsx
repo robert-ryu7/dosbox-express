@@ -12,13 +12,13 @@ import { confirm } from "@tauri-apps/api/dialog";
 import AddCategory from "./AddCategory";
 import AddSetting from "./AddSetting";
 import Divider from "../../components/Divider";
-import { useSettings } from "../contexts/settingsContext";
 import ConfigChangesConfirmation from "./ConfigChangesConfirmation";
 import parseConfig from "../../common/parseConfig";
 import OutsetHead from "../../components/OutsetHead";
 import { invoke } from "@tauri-apps/api";
 import Checkbox from "../../components/Checkbox";
 import attempt from "../../common/attempt";
+import { useSettings } from "../SettingsProvider";
 
 type ConfigureGameProps = {
   id: number;
@@ -35,7 +35,7 @@ const resolveCategorySettings = (config: Config, baseConfig: Config, category: s
 };
 
 const ConfigureGame = (props: ConfigureGameProps) => {
-  const settings = useSettings();
+  const { settings } = useSettings();
   const baseConfig = useMemo(() => parseConfig(props.baseConfig), [props.baseConfig]);
   const gameConfig = useMemo(() => parseConfig(props.gameConfig), [props.gameConfig]);
   const [selection, setSelection] = useState<string[]>([]);
@@ -273,7 +273,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
             <Button
               type="button"
               onClick={() => {
-                if (settings.find((setting) => setting.key === "confirmConfigChanges")?.value === "1") {
+                if (settings.confirmConfigChanges) {
                   setConfirmationValue(stringifyConfig(config));
                 } else {
                   saveChanges(stringifyConfig(config));

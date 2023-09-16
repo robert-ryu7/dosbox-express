@@ -3,7 +3,6 @@ import DataTable, { DataTableColumn } from "../../components/DataTable";
 import Divider from "../../components/Divider";
 import Input from "../../components/Input";
 import Outset from "../../components/Outset";
-import fetchBaseConfig from "../../fetchers/fetchBaseConfig";
 import fetchGameConfig from "../../fetchers/fetchGameConfig";
 import useStorage from "../../hooks/useStorage";
 import mainColumnsStorage from "../../storage/mainColumnsStorage";
@@ -20,6 +19,7 @@ import { confirm } from "@tauri-apps/api/dialog";
 import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import { useDebounce } from "@uidotdev/usehooks";
 import attempt from "../../common/attempt";
+import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 
 const getGameKey = (game: Game) => game.id;
 
@@ -135,7 +135,7 @@ const Main = () => {
             disabled={selection.length !== 1}
             onClick={attempt(async () => {
               const id = selection[0];
-              const baseConfig = await fetchBaseConfig();
+              const baseConfig = await readTextFile("base.conf", { dir: BaseDirectory.Resource });
               const gameConfig = await fetchGameConfig(id);
               setConfigureGameDialogTarget({ id, baseConfig, gameConfig });
             })}

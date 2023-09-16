@@ -1,38 +1,31 @@
 import Dialog from "../../components/Dialog";
 import Outset from "../../components/Outset";
 import { useFormik, FormikContext } from "formik";
-import * as Yup from "yup";
 import Button from "../../components/Button";
 import Form from "../../components/formik/Form";
 import Checkbox from "../../components/formik/Checkbox";
-import { useEffect, useMemo, useState } from "preact/hooks";
-import { invoke } from "@tauri-apps/api";
+import { useEffect, useState } from "preact/hooks";
 import { exists, readDir, BaseDirectory } from "@tauri-apps/api/fs";
-import { useSettings } from "../contexts/settingsContext";
 import OutsetHead from "../../components/OutsetHead";
 import Select from "../../components/formik/Select";
 import TextArea from "../../components/formik/TextArea";
+import { Settings as Values } from "../../types";
+import { useSettings } from "../SettingsProvider";
+import * as Yup from "yup";
 
-type Values = {
-  confirmConfigChanges: boolean;
-  useRelativeConfigPathsWhenPossible: boolean;
-  theme: string | undefined;
-  inlineCss: string | undefined;
-};
-
-const validationSchema: Yup.SchemaOf<Values> = Yup.object({
-  confirmConfigChanges: Yup.bool().label("Confirm config changes").defined(),
-  useRelativeConfigPathsWhenPossible: Yup.bool().label("Confirm config changes").defined(),
-  theme: Yup.string().label("Theme").optional(),
-  inlineCss: Yup.string().label("Inline CSS").optional(),
+const SCHEMA = Yup.object({
+  confirmConfigChanges: Yup.bool().label("Confirm config changes").defined().default(false),
+  useRelativeConfigPathsWhenPossible: Yup.bool().label("Use relative paths when possible").defined().default(false),
+  theme: Yup.string().label("Theme").optional().default(""),
+  inlineCss: Yup.string().label("Inline CSS").optional().default(""),
 });
 
-const getThemes = async (): Promise<{ name: string; path: string }[]> => {
+const getThemes = async (): Promise<string[]> => {
   if (await exists("themes", { dir: BaseDirectory.Resource })) {
     const entries = await readDir("themes", { dir: BaseDirectory.Resource, recursive: false });
     return entries
       .filter((entry): entry is { name: string; path: string } => !!entry.name && entry.name.endsWith(".css"))
-      .map((entry) => ({ name: entry.name, path: entry.path }));
+      .map((entry) => entry.name);
   }
 
   return [];
@@ -44,35 +37,19 @@ type SettingsProps = {
 };
 
 const Settings = (props: SettingsProps) => {
-  const [themes, setThemes] = useState<{ name: string; path: string }[] | undefined>(undefined);
+  const [themes, setThemes] = useState<string[] | undefined>(undefined);
   useEffect(() => {
     getThemes().then(setThemes);
   }, []);
 
-  const settings = useSettings();
-  const initialValues = useMemo<Values>(() => {
-    return {
-      confirmConfigChanges: settings.find((setting) => setting.key === "confirmConfigChanges")?.value === "1",
-      useRelativeConfigPathsWhenPossible:
-        settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1",
-      theme: settings.find((setting) => setting.key === "theme")?.value ?? "",
-      inlineCss: settings.find((setting) => setting.key === "inlineCss")?.value ?? "",
-    };
-  }, [settings]);
+  const { settings, setSettings } = useSettings();
   const formik = useFormik<Values>({
-    initialValues,
-    validationSchema,
+    initialValues: settings,
+    validationSchema: SCHEMA,
     validateOnMount: true,
     enableReinitialize: true,
     onSubmit: async (values) => {
-      await invoke("update_settings", {
-        changedSettings: [
-          { key: "confirmConfigChanges", value: values.confirmConfigChanges ? "1" : "0" },
-          { key: "useRelativeConfigPathsWhenPossible", value: values.useRelativeConfigPathsWhenPossible ? "1" : "0" },
-          { key: "theme", value: values.theme },
-          { key: "inlineCss", value: values.inlineCss },
-        ],
-      });
+      await setSettings(values);
       props.onHide();
     },
   });
@@ -86,8 +63,8 @@ const Settings = (props: SettingsProps) => {
             <Select name="theme" selectId="theme" label="Theme">
               <option value="">Default</option>
               {themes?.map((theme) => (
-                <option key={theme.path} value={theme.path}>
-                  {theme.name}
+                <option key={theme} value={theme}>
+                  {theme}
                 </option>
               ))}
             </Select>

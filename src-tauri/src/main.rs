@@ -6,11 +6,10 @@
 use diesel::associations::HasTable;
 use diesel::prelude::*;
 use diesel::query_builder::AsQuery;
-use diesel::sql_types::Text;
 use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use dosbox_express::models::{Game, NewGame, Setting};
-use dosbox_express::schema::{games, settings};
+use dosbox_express::models::{Game, NewGame};
+use dosbox_express::schema::games;
 use tauri::Manager;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
@@ -313,53 +312,6 @@ fn delete_games(
     Ok(())
 }
 
-#[tauri::command]
-fn get_settings(state: tauri::State<DbConnection>) -> Result<Vec<Setting>, String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
-
-    settings::dsl::settings
-        .load::<Setting>(connection)
-        .or(Err("Error loading settings".to_string()))
-}
-
-#[tauri::command]
-fn update_settings(
-    app: tauri::AppHandle,
-    state: tauri::State<DbConnection>,
-    changed_settings: Vec<dosbox_express::models::UpsertSetting>,
-) -> Result<(), String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
-
-    connection.transaction::<_, diesel::result::Error, _>(|conn| {
-        for changed_setting in changed_settings {
-            let result = diesel::sql_query("INSERT INTO settings(key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
-                .bind::<Text, _>(changed_setting.key)
-                .bind::<Text, _>(changed_setting.value)
-                .execute(conn);
-
-            if result.is_err() {
-                return Err(diesel::result::Error::RollbackTransaction);
-            }
-        }
-
-        Ok(())
-    }).or(Err("Failed to update settings".to_string()))?;
-
-    let payload = settings::dsl::settings
-        .load::<Setting>(connection)
-        .or(Err("Error loading settings".to_string()))?;
-
-    app.emit_all("settings_changed", &payload).unwrap();
-
-    Ok(())
-}
-
 fn main() {
     dotenvy::dotenv().ok();
 
@@ -405,9 +357,7 @@ fn main() {
             create_game,
             update_game,
             get_games,
-            delete_games,
-            get_settings,
-            update_settings
+            delete_games
         ])
         .run(context)
         .expect("error while running tauri application");

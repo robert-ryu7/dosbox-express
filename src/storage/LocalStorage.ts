@@ -1,23 +1,21 @@
-import { StorageCallback, Storage } from "./types";
+import Storage from "./Storage";
 
-class LocalStorage<T> implements Storage<T> {
-  private subscribers = new Set<StorageCallback<T>>();
+class LocalStorage<T> extends Storage<T | null> {
   private key: string;
   private snapshot: T | null;
 
   constructor(key: string) {
+    super();
     this.key = key;
 
     const rawData = localStorage.getItem(this.key);
     this.snapshot = rawData ? JSON.parse(rawData) : null;
 
     window.addEventListener("storage", (event) => {
-      if (event.key !== key || event.storageArea !== window.localStorage)
-        return;
+      if (event.key !== key || event.storageArea !== window.localStorage) return;
 
-      this.snapshot =
-        event.newValue === null ? null : JSON.parse(event.newValue);
-      this.subscribers.forEach((cb) => cb(this.snapshot));
+      this.snapshot = event.newValue === null ? null : JSON.parse(event.newValue);
+      this.callSubscribers(this.snapshot);
     });
   }
 
@@ -31,13 +29,7 @@ class LocalStorage<T> implements Storage<T> {
       localStorage.setItem(this.key, rawData);
     }
     this.snapshot = data;
-    this.subscribers.forEach((cb) => cb(this.snapshot));
-  };
-
-  subscribe = (callback: StorageCallback<T>) => {
-    this.subscribers.add(callback);
-
-    return () => this.subscribers.delete(callback);
+    this.callSubscribers(this.snapshot);
   };
 }
 

@@ -4,9 +4,11 @@ export type Game = {
   config_path: string;
 };
 
-export type Setting = {
-  key: string;
-  value: string;
+export type Settings = {
+  theme: string;
+  inlineCss: string;
+  useRelativeConfigPathsWhenPossible: boolean;
+  confirmConfigChanges: boolean;
 };
 
 export type ConfigSettingData = string;

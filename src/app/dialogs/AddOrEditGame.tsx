@@ -4,20 +4,20 @@ import Dialog from "../../components/Dialog";
 import Form from "../../components/formik/Form";
 import Input from "../../components/formik/Input";
 import Outset from "../../components/Outset";
-import { useSettings } from "../contexts/settingsContext";
 
 import { invoke } from "@tauri-apps/api";
 import { confirm, open } from "@tauri-apps/api/dialog";
 import { extname, resolveResource } from "@tauri-apps/api/path";
 import { FormikContext, useFormik } from "formik";
 import * as Yup from "yup";
+import { useSettings } from "../SettingsProvider";
 
 type Values = {
   title: string;
   config_path: string;
 };
 
-const validationSchema: Yup.SchemaOf<Values> = Yup.object({
+const validationSchema: Yup.ObjectSchema<Values> = Yup.object({
   title: Yup.string().label("Title").required(),
   config_path: Yup.string().label("Config path").required(),
 });
@@ -29,7 +29,7 @@ type AddOrEditGameProps = {
 };
 
 const AddOrEditGame = (props: AddOrEditGameProps) => {
-  const settings = useSettings();
+  const { settings } = useSettings();
   const formik = useFormik<Values>({
     initialValues: props.initialValues,
     validationSchema,
@@ -103,10 +103,7 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
                       }
                     }
 
-                    if (
-                      path !== null &&
-                      settings.find((setting) => setting.key === "useRelativeConfigPathsWhenPossible")?.value === "1"
-                    ) {
+                    if (path !== null && settings.useRelativeConfigPathsWhenPossible) {
                       const relativePath = await invoke<string | null>("make_relative_path", { path });
                       path = relativePath;
                     }

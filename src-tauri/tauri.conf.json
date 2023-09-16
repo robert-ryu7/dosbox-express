@@ -26,8 +26,12 @@
       "fs": {
         "readDir": true,
         "readFile": true,
+        "writeFile": true,
         "exists": true,
-        "scope": ["$RESOURCE/*"]
+        "scope": ["$RESOURCE/settings.json", "$RESOURCE/base.conf", "$RESOURCE/themes", "$RESOURCE/themes/*.css"]
+      },
+      "process": {
+        "exit": true
       }
     },
     "bundle": {

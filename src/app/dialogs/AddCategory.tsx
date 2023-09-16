@@ -16,7 +16,7 @@ const initialValues: Values = {
   name: "",
 };
 
-const validationSchema: Yup.SchemaOf<Values> = Yup.object({
+const validationSchema: Yup.ObjectSchema<Values> = Yup.object({
   name: Yup.string().label("Name").required(),
 });
 

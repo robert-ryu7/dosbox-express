@@ -462,12 +462,14 @@ body {
 .checkbox {
   display: flex;
   flex-direction: row;
+  align-items: flex-start;
   justify-content: flex-end;
   gap: 16px;
 }
 
 .checkbox label {
   padding: 2px 0;
+  text-align: end;
 }
 
 .checkbox input {
@@ -492,6 +494,7 @@ body {
   border-color: var(--color-button-bright) var(--color-button-darker) var(--color-button-dark)
     var(--color-button-bright);
   color: var(--color-front);
+  height: 10px;
   font-size: 10px;
   font-family: var(--font-family);
 }
