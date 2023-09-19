@@ -18,6 +18,11 @@ const SCHEMA = Yup.object({
   useRelativeConfigPathsWhenPossible: Yup.bool().label("Use relative paths when possible").defined().default(false),
   theme: Yup.string().label("Theme").optional().default(""),
   inlineCss: Yup.string().label("Inline CSS").optional().default(""),
+  saveEmptyConfigValues: Yup.string()
+    .label("Save empty config values")
+    .oneOf(["none", "settings", "all"])
+    .optional()
+    .default("none"),
 });
 
 const getThemes = async (): Promise<string[]> => {
@@ -29,6 +34,12 @@ const getThemes = async (): Promise<string[]> => {
   }
 
   return [];
+};
+
+const getLabel = (path: string) => {
+  const schema = Yup.reach(SCHEMA, path);
+
+  if (schema instanceof Yup.Schema) return schema.spec.label;
 };
 
 type SettingsProps = {
@@ -60,7 +71,7 @@ const Settings = (props: SettingsProps) => {
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Visuals</OutsetHead>
-            <Select name="theme" selectId="theme" label="Theme">
+            <Select name="theme" selectId="theme" label={getLabel("theme")}>
               <option value="">Default</option>
               {themes?.map((theme) => (
                 <option key={theme} value={theme}>
@@ -72,17 +83,30 @@ const Settings = (props: SettingsProps) => {
               rows={6}
               name="inlineCss"
               id="inlineCss"
-              label="Inline CSS"
+              label={getLabel("inlineCss")}
               placeholder={`dialog {\n  opacity: 0.5;\n}\n`}
             />
           </Outset>
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Miscellaneous</OutsetHead>
-            <Checkbox name="confirmConfigChanges" inputId="confirmConfigChanges" label="Confirm config changes" />
+            <Select
+              name="saveEmptyConfigValues"
+              selectId="saveEmptyConfigValues"
+              label={getLabel("saveEmptyConfigValues")}
+            >
+              <option value="none">Do not save empty categories or settings</option>
+              <option value="settings">Do not save empty categories but save empty settings</option>
+              <option value="all">Save all empty values</option>
+            </Select>
+            <Checkbox
+              name="confirmConfigChanges"
+              inputId="confirmConfigChanges"
+              label={getLabel("confirmConfigChanges")}
+            />
             <Checkbox
               name="useRelativeConfigPathsWhenPossible"
               inputId="useRelativeConfigPathsWhenPossible"
-              label="Use relative config paths when possible"
+              label={getLabel("useRelativeConfigPathsWhenPossible")}
             />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">

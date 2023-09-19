@@ -5,20 +5,18 @@ import Inset from "../../components/Inset";
 import List from "../../components/List";
 import Outset from "../../components/Outset";
 import Input from "../../components/Input";
-import { Config, ConfigCategoryData } from "../../types";
 import TextArea from "../../components/TextArea";
-import stringifyConfig from "../../common/stringifyConfig";
 import { confirm } from "@tauri-apps/api/dialog";
 import AddCategory from "./AddCategory";
 import AddSetting from "./AddSetting";
 import Divider from "../../components/Divider";
 import ConfigChangesConfirmation from "./ConfigChangesConfirmation";
-import parseConfig from "../../common/parseConfig";
 import OutsetHead from "../../components/OutsetHead";
 import { invoke } from "@tauri-apps/api";
 import Checkbox from "../../components/Checkbox";
 import attempt from "../../common/attempt";
 import { useSettings } from "../SettingsProvider";
+import Config from "../../common/Config";
 
 type ConfigureGameProps = {
   id: number;
@@ -27,19 +25,19 @@ type ConfigureGameProps = {
   onHide: () => void;
 };
 
-const resolveCategorySettings = (config: Config, baseConfig: Config, category: string) => {
+const resolveCategorySettings = (config: Config, baseConfig: Config, categoryKey: string) => {
   const set = new Set<string>();
-  Object.keys(config.categories[category]?.settings ?? {}).forEach((setting) => set.add(setting));
-  Object.keys(baseConfig.categories[category]?.settings ?? {}).forEach((setting) => set.add(setting));
+  config.getCategoryKeys(categoryKey)?.forEach((setting) => set.add(setting));
+  baseConfig.getCategoryKeys(categoryKey)?.forEach((setting) => set.add(setting));
   return [...set];
 };
 
 const ConfigureGame = (props: ConfigureGameProps) => {
   const { settings } = useSettings();
-  const baseConfig = useMemo(() => parseConfig(props.baseConfig), [props.baseConfig]);
-  const gameConfig = useMemo(() => parseConfig(props.gameConfig), [props.gameConfig]);
+  const baseConfig = useMemo(() => Config.parse(props.baseConfig), [props.baseConfig]);
+  const gameConfig = useMemo(() => Config.parse(props.gameConfig), [props.gameConfig]);
   const [selection, setSelection] = useState<string[]>([]);
-  const [config, setConfig] = useState<Config>(() => JSON.parse(JSON.stringify(gameConfig)));
+  const [config, setConfig] = useState<Config>(() => gameConfig.clone());
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState<boolean>(false);
   const [showAddSettingDialog, setShowAddSettingDialog] = useState<boolean>(false);
   const [showBaseCategoryComments, setShowBaseCategoryComments] = useState<boolean>(false);
@@ -47,8 +45,8 @@ const ConfigureGame = (props: ConfigureGameProps) => {
 
   const categories = useMemo<string[]>(() => {
     const set = new Set<string>();
-    Object.keys(config.categories).forEach((category) => set.add(category));
-    Object.keys(baseConfig.categories).forEach((category) => set.add(category));
+    config.keys.forEach((category) => set.add(category));
+    baseConfig.keys.forEach((category) => set.add(category));
     return [...set];
   }, [baseConfig, config]);
 
@@ -68,16 +66,16 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                 <List
                   style="flex: 1 1 auto;"
                   items={categories}
-                  getKey={(category) => category}
+                  getKey={(categoryKey) => categoryKey}
                   selection={selection[0]}
-                  onSelect={(category) => setSelection(category ? [category] : [])}
+                  onSelect={(categoryKey) => setSelection(categoryKey ? [categoryKey] : [])}
                 >
-                  {(category) => {
-                    const isInGameConfig = Object.keys(config.categories).includes(category);
-                    const containsDifferences = resolveCategorySettings(config, baseConfig, category).some(
-                      (setting) => {
-                        const baseValue = baseConfig.categories[category]?.settings[setting] ?? "";
-                        const value = config.categories[category]?.settings[setting] ?? "";
+                  {(categoryKey) => {
+                    const isInGameConfig = config.keys.includes(categoryKey);
+                    const containsDifferences = resolveCategorySettings(config, baseConfig, categoryKey).some(
+                      (settingKey) => {
+                        const baseValue = baseConfig.getCategorySetting(categoryKey, settingKey) ?? "";
+                        const value = config.getCategorySetting(categoryKey, settingKey) ?? "";
                         return baseValue !== value && value !== "";
                       }
                     );
@@ -85,7 +83,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                     return (
                       <span style={{ color: containsDifferences ? "var(--color-front)" : "var(--color-front-alt)" }}>
                         {isInGameConfig ? "" : "~ "}
-                        {category}
+                        {categoryKey}
                       </span>
                     );
                   }}
@@ -96,7 +94,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                   </Button>
                   <Button
                     type="button"
-                    disabled={!selection[0] || !Object.keys(config.categories).includes(selection[0])}
+                    disabled={!selection[0] || !config.keys.includes(selection[0])}
                     onClick={async () => {
                       if (!selection[0]) return;
 
@@ -106,10 +104,10 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                       );
                       if (confirmed) {
                         setConfig((s) => {
-                          const categories = { ...s.categories };
-                          delete categories[selection[0]];
+                          const config = s.clone();
+                          config.deleteCategory(selection[0]);
 
-                          return { ...s, categories };
+                          return config;
                         });
                         setSelection([]);
                       }
@@ -126,22 +124,20 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                 <List
                   style="flex: 1 1 auto;"
                   items={selection[0] ? resolveCategorySettings(config, baseConfig, selection[0]) : []}
-                  getKey={(setting) => setting}
+                  getKey={(settingKey) => settingKey}
                   selection={selection[1] ?? null}
                   onSelect={(setting) => setSelection(setting ? [selection[0], setting] : [selection[0]])}
                 >
-                  {(setting) => {
-                    const isInGameConfig = Object.keys(config.categories[selection[0]]?.settings ?? {}).includes(
-                      setting
-                    );
-                    const baseValue = baseConfig.categories[selection[0]]?.settings[setting] ?? "";
-                    const value = config.categories[selection[0]]?.settings[setting] ?? "";
+                  {(settingKey) => {
+                    const isInGameConfig = config.getCategoryKeys(selection[0])?.includes(settingKey);
+                    const baseValue = baseConfig.getCategorySetting(selection[0], settingKey) ?? "";
+                    const value = config.getCategorySetting(selection[0], settingKey) ?? "";
                     const isDifferent = baseValue !== value && value !== "";
 
                     return (
                       <span style={{ color: isDifferent ? "var(--color-front)" : "var(--color-front-alt)" }}>
                         {isInGameConfig ? "" : "~ "}
-                        {`${setting} = ${value}`}
+                        {`${settingKey} = ${value}`}
                       </span>
                     );
                   }}
@@ -152,30 +148,16 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                     name="setting_value"
                     inputId="setting_value"
                     disabled={!selection[1]}
-                    placeholder={baseConfig.categories[selection[0]]?.settings[selection[1]]}
-                    value={config.categories[selection[0]]?.settings[selection[1]] ?? ""}
+                    placeholder={baseConfig.getCategorySetting(selection[0], selection[1])}
+                    value={config.getCategorySetting(selection[0], selection[1]) ?? ""}
                     onChange={(event) => {
                       const value = (event.target as HTMLInputElement).value;
 
                       setConfig((s) => {
-                        const categoryData: ConfigCategoryData = s.categories[selection[0]] ?? {
-                          comments: "",
-                          settings: {},
-                        };
+                        const config = s.clone();
+                        config.setCategorySetting(selection[0], selection[1], value);
 
-                        return {
-                          ...s,
-                          categories: {
-                            ...s.categories,
-                            [selection[0]]: {
-                              ...categoryData,
-                              settings: {
-                                ...categoryData.settings,
-                                [selection[1]]: value,
-                              },
-                            },
-                          },
-                        };
+                        return config;
                       });
                     }}
                   />
@@ -198,16 +180,10 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                       );
                       if (confirmed) {
                         setConfig((s) => {
-                          const settings = { ...s.categories[selection[0]]?.settings };
-                          delete settings[selection[1]];
+                          const config = s.clone();
+                          config.deleteCategorySetting(selection[0], selection[1]);
 
-                          return {
-                            ...s,
-                            categories: {
-                              ...s.categories,
-                              [selection[0]]: { ...s.categories[selection[0]], settings },
-                            },
-                          };
+                          return config;
                         });
                         setSelection([selection[0]]);
                       }
@@ -221,7 +197,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                 {showBaseCategoryComments ? (
                   <div style="display: flex; flex-direction: column; gap: 4px;">
                     <div>Base category comments</div>
-                    <Inset style="height: 72px;">{baseConfig.categories[selection[0]]?.comments}</Inset>
+                    <Inset style="height: 72px;">{baseConfig.getCategoryComments(selection[0])}</Inset>
                   </div>
                 ) : (
                   <TextArea
@@ -230,16 +206,15 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                     name={`${selection[0]}.comments`}
                     textareaId={`${selection[0]}.comments`}
                     label="Category comments"
-                    value={config.categories[selection[0]]?.comments ?? ""}
+                    value={config.getCategoryComments(selection[0]) ?? ""}
                     onChange={(event) => {
                       const value = (event.target as HTMLTextAreaElement).value;
-                      setConfig((s) => ({
-                        ...s,
-                        categories: {
-                          ...s.categories,
-                          [selection[0]]: { ...s.categories[selection[0]], comments: value },
-                        },
-                      }));
+                      setConfig((s) => {
+                        const config = s.clone();
+                        config.setCategoryComments(selection[0], value);
+
+                        return config;
+                      });
                     }}
                   />
                 )}
@@ -262,7 +237,12 @@ const ConfigureGame = (props: ConfigureGameProps) => {
               label="Autoexec"
               value={config.autoexec}
               onChange={(event) => {
-                setConfig((s) => ({ ...s, autoexec: (event.target as HTMLTextAreaElement).value }));
+                setConfig((s) => {
+                  const config = s.clone();
+                  config.autoexec = (event.target as HTMLTextAreaElement).value;
+
+                  return config;
+                });
               }}
             />
           </Outset>
@@ -274,9 +254,9 @@ const ConfigureGame = (props: ConfigureGameProps) => {
               type="button"
               onClick={() => {
                 if (settings.confirmConfigChanges) {
-                  setConfirmationValue(stringifyConfig(config));
+                  setConfirmationValue(Config.stringify(config, { allowEmpty: settings.saveEmptyConfigValues }));
                 } else {
-                  saveChanges(stringifyConfig(config));
+                  saveChanges(Config.stringify(config, { allowEmpty: settings.saveEmptyConfigValues }));
                 }
               }}
             >
@@ -290,12 +270,10 @@ const ConfigureGame = (props: ConfigureGameProps) => {
         onHide={() => setShowAddCategoryDialog(false)}
         onSubmit={async (values) => {
           setConfig((s) => {
-            const categoryData: ConfigCategoryData = s.categories[values.name] ?? {
-              comments: "",
-              settings: {},
-            };
+            const config = s.clone();
+            config.setCategory(values.name);
 
-            return { ...s, categories: { ...s.categories, [values.name]: categoryData } };
+            return config;
           });
           setShowAddCategoryDialog(false);
           setSelection([values.name]);
@@ -306,19 +284,10 @@ const ConfigureGame = (props: ConfigureGameProps) => {
         onHide={() => setShowAddSettingDialog(false)}
         onSubmit={async (values) => {
           setConfig((s) => {
-            return {
-              ...s,
-              categories: {
-                ...s.categories,
-                [selection[0]]: {
-                  ...s.categories[selection[0]],
-                  settings: {
-                    ...s.categories[selection[0]]?.settings,
-                    [values.name]: "",
-                  },
-                },
-              },
-            };
+            const config = s.clone();
+            config.setCategorySetting(selection[0], values.name, "");
+
+            return config;
           });
           setShowAddSettingDialog(false);
           setSelection([selection[0], values.name]);

@@ -14,6 +14,7 @@ const SETTINGS_SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
   useRelativeConfigPathsWhenPossible: Yup.bool().defined().default(false),
   theme: Yup.string().optional().default(""),
   inlineCss: Yup.string().optional().default(""),
+  saveEmptyConfigValues: Yup.string().oneOf(["none", "settings", "all"]).optional().default("none"),
 });
 
 const saveToFile = async (data: Settings): Promise<void> => {

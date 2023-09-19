@@ -4,7 +4,7 @@ import { useField } from "formik";
 import { ComponentChildren } from "preact";
 
 type SelectProps = {
-  label: string;
+  label?: string;
   selectId: string;
   name: string;
   className?: string;

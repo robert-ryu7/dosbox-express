@@ -2,7 +2,7 @@ import CheckboxBase from "../Checkbox";
 import { Field } from "formik";
 
 type CheckboxProps = {
-  label: string;
+  label?: string;
   inputId: string;
   name: string;
   className?: string;

@@ -3,7 +3,7 @@ import TextAreaBase from "../TextArea";
 import { useField } from "formik";
 
 type TextAreaProps = {
-  label: string;
+  label?: string;
   id: string;
   name: string;
   className?: string;
