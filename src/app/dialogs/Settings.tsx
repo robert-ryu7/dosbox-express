@@ -23,6 +23,11 @@ const SCHEMA = Yup.object({
     .oneOf(["none", "settings", "all"])
     .optional()
     .default("none"),
+  showBaseCategoryCommentsByDefault: Yup.string()
+    .label("Show base category comments by default")
+    .oneOf(["always", "never", "auto"])
+    .optional()
+    .default("auto"),
 });
 
 const getThemes = async (): Promise<string[]> => {
@@ -94,9 +99,18 @@ const Settings = (props: SettingsProps) => {
               selectId="saveEmptyConfigValues"
               label={getLabel("saveEmptyConfigValues")}
             >
-              <option value="none">Do not save empty categories or settings</option>
-              <option value="settings">Do not save empty categories but save empty settings</option>
+              <option value="none">Don't save empty categories or settings</option>
+              <option value="settings">Don't save empty categories but save empty settings</option>
               <option value="all">Save all empty values</option>
+            </Select>
+            <Select
+              name="showBaseCategoryCommentsByDefault"
+              selectId="showBaseCategoryCommentsByDefault"
+              label={getLabel("showBaseCategoryCommentsByDefault")}
+            >
+              <option value="always">Always show base category comments</option>
+              <option value="never">Always show category comments</option>
+              <option value="auto">Show category comments only when not empty</option>
             </Select>
             <Checkbox
               name="confirmConfigChanges"

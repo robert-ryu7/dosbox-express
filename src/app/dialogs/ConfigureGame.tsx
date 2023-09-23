@@ -17,6 +17,49 @@ import Checkbox from "../../components/Checkbox";
 import attempt from "../../common/attempt";
 import { useSettings } from "../SettingsProvider";
 import Config from "../../common/Config";
+import { ComponentChildren } from "preact";
+
+type CategoryCommentsBlockProps = {
+  children: (value: string) => ComponentChildren;
+  value: string;
+  baseValue: string;
+};
+
+const CategoryCommentsBlock = (props: CategoryCommentsBlockProps) => {
+  const { settings } = useSettings();
+  const [showBaseCategoryComments, setShowBaseCategoryComments] = useState<boolean>(() => {
+    console.log();
+    switch (settings.showBaseCategoryCommentsByDefault) {
+      case "always":
+        return true;
+      case "never":
+        return false;
+      case "auto":
+        return !props.value;
+    }
+  });
+
+  return (
+    <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">
+      {showBaseCategoryComments ? (
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div>Base category comments</div>
+          <Inset style="height: 72px;">{props.baseValue}</Inset>
+        </div>
+      ) : (
+        props.children(props.value)
+      )}
+      <Checkbox
+        inputId="showBaseCategoryComments"
+        label="Show base category comments"
+        checked={showBaseCategoryComments}
+        onChange={(event) => {
+          if (event.target instanceof HTMLInputElement) setShowBaseCategoryComments(event.target.checked);
+        }}
+      />
+    </Outset>
+  );
+};
 
 type ConfigureGameProps = {
   id: number;
@@ -40,7 +83,6 @@ const ConfigureGame = (props: ConfigureGameProps) => {
   const [config, setConfig] = useState<Config>(() => gameConfig.clone());
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState<boolean>(false);
   const [showAddSettingDialog, setShowAddSettingDialog] = useState<boolean>(false);
-  const [showBaseCategoryComments, setShowBaseCategoryComments] = useState<boolean>(false);
   const [confirmationValue, setConfirmationValue] = useState<string | null>(null);
 
   const categories = useMemo<string[]>(() => {
@@ -193,20 +235,18 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                   </Button>
                 </div>
               </Outset>
-              <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">
-                {showBaseCategoryComments ? (
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <div>Base category comments</div>
-                    <Inset style="height: 72px;">{baseConfig.getCategoryComments(selection[0])}</Inset>
-                  </div>
-                ) : (
+              <CategoryCommentsBlock
+                key={`${selection[0]}.comments`}
+                value={config.getCategoryComments(selection[0]) ?? ""}
+                baseValue={baseConfig.getCategoryComments(selection[0]) ?? ""}
+              >
+                {(value) => (
                   <TextArea
                     rows={6}
-                    key={`${selection[0]}.comments`}
                     name={`${selection[0]}.comments`}
                     textareaId={`${selection[0]}.comments`}
                     label="Category comments"
-                    value={config.getCategoryComments(selection[0]) ?? ""}
+                    value={value}
                     onChange={(event) => {
                       const value = (event.target as HTMLTextAreaElement).value;
                       setConfig((s) => {
@@ -218,15 +258,7 @@ const ConfigureGame = (props: ConfigureGameProps) => {
                     }}
                   />
                 )}
-                <Checkbox
-                  inputId="showBaseCategoryComments"
-                  label="Show base category comments"
-                  checked={showBaseCategoryComments}
-                  onChange={(event) => {
-                    if (event.target instanceof HTMLInputElement) setShowBaseCategoryComments(event.target.checked);
-                  }}
-                />
-              </Outset>
+              </CategoryCommentsBlock>
             </div>
           </div>
           <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;">

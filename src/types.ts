@@ -10,4 +10,5 @@ export type Settings = {
   useRelativeConfigPathsWhenPossible: boolean;
   confirmConfigChanges: boolean;
   saveEmptyConfigValues: "none" | "settings" | "all";
+  showBaseCategoryCommentsByDefault: "always" | "never" | "auto";
 };

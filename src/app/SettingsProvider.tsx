@@ -15,6 +15,7 @@ const SETTINGS_SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
   theme: Yup.string().optional().default(""),
   inlineCss: Yup.string().optional().default(""),
   saveEmptyConfigValues: Yup.string().oneOf(["none", "settings", "all"]).optional().default("none"),
+  showBaseCategoryCommentsByDefault: Yup.string().oneOf(["always", "never", "auto"]).optional().default("auto"),
 });
 
 const saveToFile = async (data: Settings): Promise<void> => {
