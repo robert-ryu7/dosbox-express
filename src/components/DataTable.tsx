@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
+type DataTableItem = Record<string, unknown>;
+
 type DragState = {
   index: number;
   width: number;
@@ -8,15 +10,16 @@ type DragState = {
   offset: number;
 };
 
-export type DataTableColumn = {
+export type DataTableColumn<T extends DataTableItem> = {
   key: string;
   heading: string;
   width: number;
+  formatter?: (item: T) => string;
 };
 
-type DataTableProps<T extends Record<string, unknown>, K> = {
+type DataTableProps<T extends DataTableItem, K> = {
   id?: string;
-  columns: DataTableColumn[];
+  columns: DataTableColumn<T>[];
   items: T[];
   getItemKey: (item: T) => K;
   rowHeight: number;
@@ -31,7 +34,7 @@ type DataTableProps<T extends Record<string, unknown>, K> = {
 };
 
 const getGripPosition = (
-  columns: DataTableColumn[],
+  columns: DataTableColumn<any>[],
   index: number,
   dragState: DragState | undefined,
   minColumnWidth: number
@@ -41,7 +44,7 @@ const getGripPosition = (
     return acc + Math.max(column.width + offset, minColumnWidth);
   }, 0);
 
-const DataTable = <T extends Record<string, unknown>, K>({
+const DataTable = <T extends DataTableItem, K>({
   id,
   columns,
   items,
@@ -198,7 +201,9 @@ const DataTable = <T extends Record<string, unknown>, K>({
                   >
                     {columns.map((column) => (
                       <div key={column.key} className="data-table__cell">
-                        <div className="data-table__cell-content">{String(item[column.key])}</div>
+                        <div className="data-table__cell-content">
+                          {column.formatter ? column.formatter(item) : String(item[column.key])}
+                        </div>
                       </div>
                     ))}
                     <div className="data-table__cell" />

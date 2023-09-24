@@ -4,9 +4,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Queryable)]
 pub struct Game {
-    pub id: Option<i32>,
+    pub id: i32,
     pub title: String,
     pub config_path: String,
+    pub run_time: i32,
 }
 
 #[derive(Insertable)]

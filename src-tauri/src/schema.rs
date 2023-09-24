@@ -2,8 +2,9 @@
 
 diesel::table! {
     games (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         title -> Text,
         config_path -> Text,
+        run_time -> Integer,
     }
 }

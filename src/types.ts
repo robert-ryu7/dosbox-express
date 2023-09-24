@@ -2,6 +2,7 @@ export type Game = {
   id: number;
   title: string;
   config_path: string;
+  run_time: number;
 };
 
 export type Settings = {

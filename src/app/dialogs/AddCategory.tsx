@@ -7,18 +7,21 @@ import { useEffect } from "preact/hooks";
 import Dialog from "../../components/Dialog";
 import Outset from "../../components/Outset";
 import Form from "../../components/formik/Form";
+import getLabelBase from "../../common/getLabel";
 
 type Values = {
   name: string;
 };
 
-const initialValues: Values = {
+const INITIAL_VALUES: Values = {
   name: "",
 };
 
-const validationSchema: Yup.ObjectSchema<Values> = Yup.object({
+const SCHEMA: Yup.ObjectSchema<Values> = Yup.object({
   name: Yup.string().label("Name").required(),
 });
+
+const getLabel = getLabelBase.bind(null, SCHEMA);
 
 type AddCategoryProps = {
   show: boolean;
@@ -28,8 +31,8 @@ type AddCategoryProps = {
 
 const AddCategory = (props: AddCategoryProps) => {
   const formik = useFormik<Values>({
-    initialValues,
-    validationSchema,
+    initialValues: INITIAL_VALUES,
+    validationSchema: SCHEMA,
     validateOnMount: true,
     onSubmit: props.onSubmit,
   });
@@ -43,7 +46,7 @@ const AddCategory = (props: AddCategoryProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="name" inputId="name" label="Name" placeholder="Name of the category" />
+            <Input name="name" inputId="name" label={getLabel("name")} placeholder="Name of the category" />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button type="button" onClick={() => props.onHide()}>

@@ -9,8 +9,9 @@ import mainColumnsStorage from "../../storage/mainColumnsStorage";
 import gamesChangedSubscription from "../../subscription/gamesChangedSubscription";
 import { Game } from "../../types";
 import { useRunningGames } from "../contexts/runningGamesContext";
-import AddOrEditGame from "../dialogs/AddOrEditGame";
-import ConfigureGame from "../dialogs/ConfigureGame";
+import AddGame from "../dialogs/AddGame";
+import EditGame from "../dialogs/EditGame";
+import ConfigGame from "../dialogs/ConfigGame";
 import Settings from "../dialogs/Settings";
 import Tools from "../dialogs/Tools";
 
@@ -20,6 +21,7 @@ import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import { useDebounce } from "@uidotdev/usehooks";
 import attempt from "../../common/attempt";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
+import secondsToHours from "../../common/secondsToHours";
 
 const getGameKey = (game: Game) => game.id;
 
@@ -27,22 +29,29 @@ const Main = () => {
   const [search, setSearch] = useState<string>("");
   const debouncedSearch = useDebounce(search, 300);
   const runningGames = useRunningGames();
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [showTools, setShowTools] = useState<boolean>(false);
-  const [gameDialogTarget, setGameDialogTarget] = useState<[number | null, Omit<Game, "id">] | null>(null);
-  const [configureGameDialogTarget, setConfigureGameDialogTarget] = useState<{
-    id: number;
-    baseConfig: string;
-    gameConfig: string;
-  } | null>(null);
+  const [settingsDialog, setSettingsDialog] = useState<boolean>(false);
+  const [toolsDialog, setToolsDialog] = useState<boolean>(false);
+  const [addGameDialog, setAddGameDialog] = useState<boolean>(false);
+  const [editGameDialog, setEditGameDialog] = useState<Game | null>(null);
+  const [configGameDialog, setConfigGameDialog] = useState<{ id: number; cfg: string; baseCfg: string } | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
   const columnsConfig = useStorage(mainColumnsStorage);
-  const columns = useMemo<DataTableColumn[]>(
+  const columns = useMemo<DataTableColumn<Game>[]>(
     () => [
       { key: "id", heading: "#", width: 30, ...columnsConfig?.id },
       { key: "title", heading: "Title", width: 180, ...columnsConfig?.title },
-      { key: "config_path", heading: "Config path", width: 570, ...columnsConfig?.config_path },
+      {
+        key: "run_time",
+        heading: "Run time",
+        width: 90,
+        formatter: (game) => {
+          const duration = secondsToHours(game.run_time);
+          return `${duration.hours}h ${duration.minutes}m ${duration.seconds}s`;
+        },
+        ...columnsConfig?.run_time,
+      },
+      { key: "config_path", heading: "Config path", width: 320, ...columnsConfig?.config_path },
     ],
     [columnsConfig]
   );
@@ -126,7 +135,7 @@ const Main = () => {
             disabled={selection.length !== 1}
             onClick={() => {
               const game = games.find((game) => game.id === selection[0]);
-              if (game) setGameDialogTarget([game.id, game]);
+              if (game) setEditGameDialog(game);
             }}
           >
             Edit
@@ -135,9 +144,9 @@ const Main = () => {
             disabled={selection.length !== 1}
             onClick={attempt(async () => {
               const id = selection[0];
-              const baseConfig = await readTextFile("base.conf", { dir: BaseDirectory.Resource });
-              const gameConfig = await fetchGameConfig(id);
-              setConfigureGameDialogTarget({ id, baseConfig, gameConfig });
+              const cfg = await fetchGameConfig(id);
+              const baseCfg = await readTextFile("base.conf", { dir: BaseDirectory.Resource });
+              setConfigGameDialog({ id, cfg, baseCfg });
             })}
           >
             Config
@@ -149,23 +158,16 @@ const Main = () => {
             Start
           </Button>
           <Divider />
-          <Button onClick={() => setGameDialogTarget([null, { title: "", config_path: "" }])}>Add</Button>
-          <Button onClick={() => setShowTools(true)}>Tools</Button>
-          <Button onClick={() => setShowSettings(true)}>Settings</Button>
+          <Button onClick={() => setAddGameDialog(true)}>Add</Button>
+          <Button onClick={() => setToolsDialog(true)}>Tools</Button>
+          <Button onClick={() => setSettingsDialog(true)}>Settings</Button>
         </div>
       </Outset>
-      {showSettings && <Settings show onHide={() => setShowSettings(false)} />}
-      {showTools && <Tools show onHide={() => setShowTools(false)} />}
-      {gameDialogTarget && (
-        <AddOrEditGame
-          id={gameDialogTarget[0]}
-          initialValues={gameDialogTarget[1]}
-          onHide={() => setGameDialogTarget(null)}
-        />
-      )}
-      {configureGameDialogTarget && (
-        <ConfigureGame {...configureGameDialogTarget} onHide={() => setConfigureGameDialogTarget(null)} />
-      )}
+      {settingsDialog && <Settings onHide={() => setSettingsDialog(false)} />}
+      {toolsDialog && <Tools onHide={() => setToolsDialog(false)} />}
+      {addGameDialog && <AddGame onHide={() => setAddGameDialog(false)} />}
+      {editGameDialog && <EditGame {...editGameDialog} onHide={() => setEditGameDialog(null)} />}
+      {configGameDialog && <ConfigGame {...configGameDialog} onHide={() => setConfigGameDialog(null)} />}
     </>
   );
 };

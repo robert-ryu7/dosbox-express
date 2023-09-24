@@ -13,7 +13,6 @@ import { useState } from "preact/hooks";
 import attempt from "../../common/attempt";
 
 type ToolsProps = {
-  show: boolean;
   onHide: () => void;
 };
 
@@ -23,7 +22,7 @@ const Tools = (props: ToolsProps) => {
   const [lastRunOutput, setLastRunOutput] = useState<string | null>(null);
 
   return (
-    <Dialog show={props.show} onHide={props.onHide}>
+    <Dialog show onHide={props.onHide}>
       <div style="width: 540px; display: flex; flex-direction: column;">
         <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">
           <OutsetHead>DOSBox runner</OutsetHead>

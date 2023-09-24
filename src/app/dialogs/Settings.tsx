@@ -12,10 +12,11 @@ import TextArea from "../../components/formik/TextArea";
 import { Settings as Values } from "../../types";
 import { useSettings } from "../SettingsProvider";
 import * as Yup from "yup";
+import getLabelBase from "../../common/getLabel";
 
-const SCHEMA = Yup.object({
-  confirmConfigChanges: Yup.bool().label("Confirm config changes").defined().default(false),
-  useRelativeConfigPathsWhenPossible: Yup.bool().label("Use relative paths when possible").defined().default(false),
+const SCHEMA: Yup.ObjectSchema<Values> = Yup.object({
+  confirmConfigChanges: Yup.bool().label("Confirm config changes").defined().default(true),
+  useRelativeConfigPathsWhenPossible: Yup.bool().label("Use relative paths when possible").defined().default(true),
   theme: Yup.string().label("Theme").optional().default(""),
   inlineCss: Yup.string().label("Inline CSS").optional().default(""),
   saveEmptyConfigValues: Yup.string()
@@ -41,14 +42,9 @@ const getThemes = async (): Promise<string[]> => {
   return [];
 };
 
-const getLabel = (path: string) => {
-  const schema = Yup.reach(SCHEMA, path);
-
-  if (schema instanceof Yup.Schema) return schema.spec.label;
-};
+const getLabel = getLabelBase.bind(null, SCHEMA);
 
 type SettingsProps = {
-  show: boolean;
   onHide: () => void;
 };
 
@@ -71,7 +67,7 @@ const Settings = (props: SettingsProps) => {
   });
 
   return (
-    <Dialog show={props.show} onHide={props.onHide}>
+    <Dialog show onHide={props.onHide}>
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">

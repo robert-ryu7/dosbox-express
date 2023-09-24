@@ -3,85 +3,55 @@
     windows_subsystem = "windows"
 )]
 
-use diesel::associations::HasTable;
+mod common;
+
+use common::exec::get_dosbox_exec;
+use common::path::resolve_relative_path;
+use common::structs::RunningGames;
+use common::types::{PoolState, Result, RunningGamesState};
 use diesel::prelude::*;
 use diesel::query_builder::AsQuery;
+use diesel::r2d2::ConnectionManager;
+use diesel::r2d2::Pool;
 use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dosbox_express::models::{Game, NewGame};
 use dosbox_express::schema::games;
+use dosbox_express::schema::games::dsl::games as games_table;
+use std::path::Path;
+use std::time::Instant;
+use tauri::AppHandle;
 use tauri::Manager;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
-struct RunningGames(std::sync::Mutex<std::collections::HashMap<i32, u32>>);
+#[tauri::command]
+fn generate_game_config(executable_path: String) -> Result<String> {
+    let executable_path_buf = std::path::PathBuf::from(executable_path);
+    let executable_file_name = executable_path_buf
+        .file_name()
+        .ok_or("Failed to get executable file name.")?;
+    let mut conf_path_buf = executable_path_buf.clone();
+    conf_path_buf.set_extension("conf");
 
-struct DbConnection {
-    db: std::sync::Mutex<SqliteConnection>,
-}
-
-fn resolve_relative_path(
-    app: &tauri::AppHandle,
-    relative_path: &str,
-) -> Result<std::path::PathBuf, String> {
-    let resource_dir = app
-        .path_resolver()
-        .resource_dir()
-        .ok_or("Failed to resolve resource directory")?;
-    let resolved_path =
-        std::path::PathBuf::from(dunce::simplified(&resource_dir.join(relative_path)));
-
-    return Ok(resolved_path);
-}
-
-fn get_dosbox_exec(app: &tauri::AppHandle) -> Result<subprocess::Exec, String> {
-    if cfg!(windows) {
-        let path = resolve_relative_path(&app, "dosbox/dosbox.exe")?;
-        return Ok(subprocess::Exec::cmd("cmd").detached().arg("/c").arg(path));
-    } else {
-        let path = resolve_relative_path(&app, "dosbox/dosbox")?;
-        return Ok(subprocess::Exec::cmd(path).detached());
+    if !Path::new(&conf_path_buf).exists() {
+        std::fs::write(
+            &conf_path_buf,
+            format!(
+                "[autoexec]\n@ECHO OFF\nMOUNT C .\nC:\nCLS\n{}",
+                executable_file_name.to_string_lossy()
+            ),
+        )
+        .or_else(|err| Err(err.to_string()))?;
     }
+
+    return Ok(conf_path_buf.to_string_lossy().to_string());
 }
 
 #[tauri::command]
-fn generate_game_config(executable_path: String) -> Result<String, String> {
-    match std::path::PathBuf::from(executable_path.clone()).file_name() {
-        Some(executable_file_name) => {
-            let mut conf_path_buf = std::path::PathBuf::from(executable_path.clone());
-            conf_path_buf.set_extension("conf");
-            let conf_path = conf_path_buf.to_string_lossy();
-
-            if !std::path::Path::new(&conf_path_buf).exists() {
-                match std::fs::write(
-                    &conf_path_buf,
-                    format!(
-                        "[autoexec]\n@ECHO OFF\nMOUNT C .\nC:\nCLS\n{}",
-                        executable_file_name.to_string_lossy()
-                    ),
-                ) {
-                    Ok(_) => {}
-                    Err(error) => return Err(error.to_string()),
-                }
-            }
-
-            return Ok(String::from(conf_path));
-        }
-        None => return Err("Failed to get executable file name".to_string()),
-    }
-}
-
-#[tauri::command]
-fn get_game_config(
-    app: tauri::AppHandle,
-    state: tauri::State<DbConnection>,
-    id: i32,
-) -> Result<String, String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
-    let game = games::dsl::games
+fn get_game_config(pool: PoolState, app: AppHandle, id: i32) -> Result<String> {
+    let connection = &mut pool.get().unwrap();
+    let game = games_table
         .filter(games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
@@ -91,17 +61,9 @@ fn get_game_config(
 }
 
 #[tauri::command]
-fn update_game_config(
-    app: tauri::AppHandle,
-    state: tauri::State<DbConnection>,
-    id: i32,
-    config: String,
-) -> Result<(), String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
-    let game = games::dsl::games
+fn update_game_config(pool: PoolState, app: AppHandle, id: i32, config: String) -> Result<()> {
+    let connection = &mut pool.get().unwrap();
+    let game = games_table
         .filter(games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
@@ -111,7 +73,7 @@ fn update_game_config(
 }
 
 #[tauri::command]
-fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
+fn get_running_games(running_games: RunningGamesState) -> Vec<i32> {
     return running_games
         .0
         .lock()
@@ -122,7 +84,7 @@ fn get_running_games(running_games: tauri::State<RunningGames>) -> Vec<i32> {
 }
 
 #[tauri::command]
-fn make_relative_path(app: tauri::AppHandle, path: String) -> Result<Option<String>, String> {
+fn make_relative_path(app: AppHandle, path: String) -> Result<Option<String>> {
     let base_path = resolve_relative_path(&app, ".")?;
 
     return Ok(
@@ -132,26 +94,26 @@ fn make_relative_path(app: tauri::AppHandle, path: String) -> Result<Option<Stri
 
 #[tauri::command]
 async fn run_game(
-    app: tauri::AppHandle,
-    state: tauri::State<'_, DbConnection>,
+    pool: PoolState<'_>,
+    running_games: RunningGamesState<'_>,
+    app: AppHandle,
     id: i32,
-) -> Result<(), String> {
-    let running_games = app.state::<RunningGames>();
-    if running_games.0.lock().unwrap().contains_key(&id) {
-        return Err(format!("Game with id {} has already started", id));
-    }
-
-    let connection = &mut *state
-        .db
+) -> Result<()> {
+    if running_games
+        .0
         .lock()
-        .or(Err("Failed to acquire database connection"))?;
-
-    let game = games::dsl::games
+        .or_else(|err| Err(err.to_string()))?
+        .contains_key(&id)
+    {
+        return Err(format!("Game with id {} has already started.", id));
+    }
+    let connection = &mut pool.get().unwrap();
+    let game = games_table
         .filter(games::id.eq(id))
         .first::<Game>(connection)
         .or_else(|err| Err(err.to_string()))?;
     let config_path = resolve_relative_path(&app, &game.config_path)?;
-    let mount_path = config_path.parent().ok_or("Failed to find parent path")?;
+    let mount_path = config_path.parent().ok_or("Failed to find parent path.")?;
     let base_conf_path = resolve_relative_path(&app, "base.conf")?;
     let exec = get_dosbox_exec(&app)?;
 
@@ -165,21 +127,22 @@ async fn run_game(
     {
         Ok(mut popen) => {
             std::thread::spawn(move || {
-                let pid = popen.pid().unwrap();
-                println!("Subprocess {} has started", pid);
-                let running_games = app.state::<RunningGames>();
-                running_games.0.lock().unwrap().insert(id, pid);
+                let pid = popen
+                    .pid()
+                    .ok_or("Failed to get PID of running game subprocess.")?;
+                println!("Subprocess {} has started.", pid);
+                let pool = app.state::<Pool<ConnectionManager<SqliteConnection>>>();
+                let running_games_state = app.state::<RunningGames>();
+                let mut running_games = running_games_state
+                    .0
+                    .lock()
+                    .or_else(|err| Err(err.to_string()))?;
+                running_games.insert(id, (pid, Instant::now()));
                 app.emit_all(
                     "running_games_changed",
-                    running_games
-                        .0
-                        .lock()
-                        .unwrap()
-                        .clone()
-                        .into_keys()
-                        .collect::<Vec<i32>>(),
+                    running_games.clone().into_keys().collect::<Vec<i32>>(),
                 )
-                .unwrap();
+                .or_else(|err| Err(err.to_string()))?;
 
                 match popen.wait() {
                     Ok(exit_status) => {
@@ -187,19 +150,28 @@ async fn run_game(
                             "Subprocess {} has exited with status {:?}.",
                             pid, exit_status
                         );
-                        running_games.0.lock().unwrap().remove(&id);
+                        {
+                            let (_, a) = running_games
+                                .remove(&id)
+                                .ok_or("Failed to remove id from running games map.")?;
+                            let duration: i32 = Instant::now()
+                                .duration_since(a)
+                                .as_secs()
+                                .try_into()
+                                .or(Err("Failed to calculate game run time."))?;
+                            let connection = &mut pool.get().unwrap();
+                            diesel::update(games_table.filter(games::id.eq(id)))
+                                .set(games::run_time.eq(games::run_time + duration))
+                                .execute(connection)
+                                .or(Err("Failed to update game run time."))?;
+                        }
                         app.emit_all(
                             "running_games_changed",
-                            running_games
-                                .0
-                                .lock()
-                                .unwrap()
-                                .clone()
-                                .into_keys()
-                                .collect::<Vec<i32>>(),
+                            running_games.clone().into_keys().collect::<Vec<i32>>(),
                         )
-                        .unwrap();
-
+                        .or_else(|err| Err(err.to_string()))?;
+                        app.emit_all("games_changed", "run_game")
+                            .or_else(|err| Err(err.to_string()))?;
                         return Ok(());
                     }
                     Err(error) => return Err(error.to_string()),
@@ -212,7 +184,7 @@ async fn run_game(
 }
 
 #[tauri::command]
-async fn run_dosbox(app: tauri::AppHandle, params: String) -> Result<String, String> {
+async fn run_dosbox(app: AppHandle, params: String) -> Result<String> {
     let exec = get_dosbox_exec(&app)?;
     let capture_data = exec
         .arg(params)
@@ -227,111 +199,110 @@ async fn run_dosbox(app: tauri::AppHandle, params: String) -> Result<String, Str
 }
 
 #[tauri::command]
-fn create_game(
-    app: tauri::AppHandle,
-    state: tauri::State<DbConnection>,
-    title: &str,
-    config_path: &str,
-) -> Result<(), String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
-
+fn create_game(pool: PoolState, app: AppHandle, title: &str, config_path: &str) -> Result<()> {
+    let connection = &mut pool.get().unwrap();
     let new_game = NewGame { title, config_path };
 
-    diesel::insert_into(games::dsl::games::table())
+    diesel::insert_into(games_table)
         .values(&new_game)
         .execute(connection)
-        .expect("Error saving new game");
+        .expect("Error saving new game.");
 
-    app.emit_all("games_changed", "create_game").unwrap();
+    app.emit_all("games_changed", "create_game")
+        .or_else(|err| Err(err.to_string()))?;
 
     return Ok(());
 }
 
 #[tauri::command]
 fn update_game(
-    app: tauri::AppHandle,
-    state: tauri::State<DbConnection>,
+    pool: PoolState,
+    app: AppHandle,
     id: i32,
     title: &str,
+    reset_run_time: bool,
     config_path: &str,
-) -> Result<(), String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
+) -> Result<()> {
+    let connection = &mut pool.get().unwrap();
+    let query_result;
 
-    diesel::update(games::dsl::games.filter(games::id.eq(id)))
-        .set((games::title.eq(title), games::config_path.eq(config_path)))
-        .execute(connection)
-        .or(Err("Failed to update game"))?;
+    if reset_run_time {
+        query_result = diesel::update(games_table.filter(games::id.eq(id)))
+            .set((
+                games::title.eq(title),
+                games::config_path.eq(config_path),
+                games::run_time.eq(0),
+            ))
+            .execute(connection);
+    } else {
+        query_result = diesel::update(games_table.filter(games::id.eq(id)))
+            .set((games::title.eq(title), games::config_path.eq(config_path)))
+            .execute(connection);
+    }
 
-    app.emit_all("games_changed", "update_game").unwrap();
+    query_result.or(Err("Failed to update game."))?;
 
-    Ok(())
+    app.emit_all("games_changed", "update_game")
+        .or_else(|err| Err(err.to_string()))?;
+
+    return Ok(());
 }
 
 #[tauri::command]
-fn get_games(state: tauri::State<DbConnection>, search: Option<&str>) -> Result<Vec<Game>, String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
-
-    let mut query = games::dsl::games.as_query().into_boxed();
+fn get_games(pool: PoolState, search: Option<&str>) -> Result<Vec<Game>> {
+    let connection = &mut pool.get().unwrap();
+    let mut query = games_table.as_query().into_boxed();
 
     if search.is_some() {
         query =
             diesel::QueryDsl::filter(query, games::title.like(format!("%{}%", search.unwrap())));
     }
 
-    query
+    let games = query
         .load::<Game>(connection)
-        .or(Err("Error loading games".to_string()))
+        .or(Err("Error loading games."))?;
+
+    return Ok(games);
 }
 
 #[tauri::command]
-fn delete_games(
-    app: tauri::AppHandle,
-    state: tauri::State<DbConnection>,
-    ids: Vec<i32>,
-) -> Result<(), String> {
-    let connection = &mut *state
-        .db
-        .lock()
-        .or(Err("Failed to acquire database connection"))?;
+fn delete_games(pool: PoolState, app: AppHandle, ids: Vec<i32>) -> Result<()> {
+    let connection = &mut pool.get().unwrap();
 
-    diesel::delete(games::dsl::games.filter(games::id.eq_any(ids)))
+    diesel::delete(games_table.filter(games::id.eq_any(ids)))
         .execute(connection)
-        .or(Err("Error deleting games"))?;
+        .or(Err("Error deleting games."))?;
 
-    app.emit_all("games_changed", "delete_games").unwrap();
+    app.emit_all("games_changed", "delete_games")
+        .or_else(|err| Err(err.to_string()))?;
 
-    Ok(())
+    return Ok(());
 }
 
 fn main() {
     dotenvy::dotenv().ok();
 
     let context = tauri::generate_context!();
-    let database_url =
+    let url =
         tauri::utils::platform::resource_dir(context.package_info(), &tauri::utils::Env::default())
             .and_then(|resource_dir| Ok(resource_dir.join("db.sqlite")))
-            .unwrap();
-    let mut connection = SqliteConnection::establish(&database_url.to_string_lossy()).unwrap();
-
-    connection.run_pending_migrations(MIGRATIONS).unwrap();
+            .expect("Failed to resolve database URL.");
+    let manager = ConnectionManager::<SqliteConnection>::new(url.to_string_lossy());
+    let pool = Pool::builder()
+        .test_on_check_out(true)
+        .build(manager)
+        .expect("Could not build connection pool.");
+    pool.get()
+        .unwrap()
+        .run_pending_migrations(MIGRATIONS)
+        .expect("Failed to run migrations.");
 
     tauri::Builder::default()
-        .manage(DbConnection {
-            db: std::sync::Mutex::new(connection),
-        })
         .manage(RunningGames(Default::default()))
+        .manage(pool)
         .setup(|app| {
             let base_conf_path = resolve_relative_path(&app.handle(), "base.conf").unwrap();
-            if !std::path::Path::new(&base_conf_path).exists() {
+            if !Path::new(&base_conf_path).exists() {
                 print!("No base configuration found. Creating a new one...");
                 let exec = get_dosbox_exec(&app.handle()).unwrap();
                 exec.arg("-c")
@@ -342,7 +313,7 @@ fn main() {
                     .arg("-exit")
                     .join()
                     .unwrap();
-                println!("done");
+                println!(" done.");
             }
             Ok(())
         })
@@ -360,5 +331,5 @@ fn main() {
             delete_games
         ])
         .run(context)
-        .expect("error while running tauri application");
+        .expect("Error while running tauri application.");
 }

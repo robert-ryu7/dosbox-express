@@ -3,7 +3,7 @@ import InputBase from "../Input";
 import { useField } from "formik";
 
 type InputProps = {
-  label: string;
+  label?: string;
   inputId: string;
   name: string;
   className?: string;

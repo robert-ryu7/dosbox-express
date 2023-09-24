@@ -7,11 +7,11 @@ import * as Yup from "yup";
 import { Settings } from "../types";
 import { useContext, useEffect, useMemo } from "preact/hooks";
 
-const SETTINGS_FILE_PATH = "settings.json";
+const FILE_PATH = "settings.json";
 
-const SETTINGS_SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
-  confirmConfigChanges: Yup.bool().defined().default(false),
-  useRelativeConfigPathsWhenPossible: Yup.bool().defined().default(false),
+const SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
+  confirmConfigChanges: Yup.bool().defined().default(true),
+  useRelativeConfigPathsWhenPossible: Yup.bool().defined().default(true),
   theme: Yup.string().optional().default(""),
   inlineCss: Yup.string().optional().default(""),
   saveEmptyConfigValues: Yup.string().oneOf(["none", "settings", "all"]).optional().default("none"),
@@ -21,7 +21,7 @@ const SETTINGS_SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
 const saveToFile = async (data: Settings): Promise<void> => {
   try {
     const rawData = JSON.stringify(data, null, 2);
-    await writeTextFile(SETTINGS_FILE_PATH, rawData, { dir: BaseDirectory.Resource });
+    await writeTextFile(FILE_PATH, rawData, { dir: BaseDirectory.Resource });
   } catch (err: unknown) {
     throw new Error(`Failed to save settings (${err})`);
   }
@@ -29,16 +29,16 @@ const saveToFile = async (data: Settings): Promise<void> => {
 
 const loadFromFile = async (): Promise<Settings> => {
   try {
-    const rawData = await readTextFile(SETTINGS_FILE_PATH, { dir: BaseDirectory.Resource });
-    return await SETTINGS_SCHEMA.strict().validate(JSON.parse(rawData));
+    const rawData = await readTextFile(FILE_PATH, { dir: BaseDirectory.Resource });
+    return await SCHEMA.strict().validate(JSON.parse(rawData));
   } catch (err: unknown) {
     throw new Error(`Failed to load settings (${err})`);
   }
 };
 
 const fetcher = async () => {
-  if (!(await exists(SETTINGS_FILE_PATH, { dir: BaseDirectory.Resource }))) {
-    await saveToFile(SETTINGS_SCHEMA.getDefault());
+  if (!(await exists(FILE_PATH, { dir: BaseDirectory.Resource }))) {
+    await saveToFile(SCHEMA.getDefault());
   }
 
   return await loadFromFile();

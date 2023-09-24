@@ -11,33 +11,47 @@ import { extname, resolveResource } from "@tauri-apps/api/path";
 import { FormikContext, useFormik } from "formik";
 import * as Yup from "yup";
 import { useSettings } from "../SettingsProvider";
+import Checkbox from "../../components/formik/Checkbox";
+import { Game } from "../../types";
+import { useMemo } from "preact/hooks";
+import getLabelBase from "../../common/getLabel";
 
 type Values = {
   title: string;
+  reset_run_time: boolean;
   config_path: string;
 };
 
-const validationSchema: Yup.ObjectSchema<Values> = Yup.object({
+const SCHEMA: Yup.ObjectSchema<Values> = Yup.object({
   title: Yup.string().label("Title").required(),
+  reset_run_time: Yup.boolean().label("Reset run time").defined(),
   config_path: Yup.string().label("Config path").required(),
 });
 
-type AddOrEditGameProps = {
-  id: number | null;
-  initialValues: Values;
+const getLabel = getLabelBase.bind(null, SCHEMA);
+
+type EditGameProps = Game & {
   onHide: () => void;
 };
 
-const AddOrEditGame = (props: AddOrEditGameProps) => {
+const EditGame = (props: EditGameProps) => {
   const { settings } = useSettings();
+  const initialValues = useMemo<Values>(
+    () => ({ title: props.title, reset_run_time: false, config_path: props.config_path }),
+    [props.title, props.config_path]
+  );
   const formik = useFormik<Values>({
-    initialValues: props.initialValues,
-    validationSchema,
+    initialValues,
+    validationSchema: SCHEMA,
     validateOnMount: true,
     enableReinitialize: true,
     onSubmit: async (values) => {
-      if (props.id === null) await invoke("create_game", { title: values.title, configPath: values.config_path });
-      else await invoke("update_game", { id: props.id, title: values.title, configPath: values.config_path });
+      await invoke("update_game", {
+        id: props.id,
+        title: values.title,
+        resetRunTime: values.reset_run_time,
+        configPath: values.config_path,
+      });
       props.onHide();
     },
   });
@@ -47,11 +61,11 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="title" inputId="title" label="Title" placeholder="Name of the game" />
+            <Input name="title" inputId="title" label={getLabel("title")} placeholder="Name of the game" />
             <Input
               name="config_path"
               inputId="config_path"
-              label="Config path"
+              label={getLabel("config_path")}
               placeholder="Path to DOSBox config file"
               after={
                 <Button
@@ -84,7 +98,7 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
                         case "com": {
                           if (
                             await confirm(
-                              "You have selected an executable file, do you want to generate a basic DOSBox configuration for it?",
+                              "You have selected an executable file, do you want to generate a basic DOSBox configuration for it if it doesn't exist?",
                               {
                                 title: "Generate configuration file",
                                 type: "warning",
@@ -115,6 +129,7 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
                 </Button>
               }
             />
+            <Checkbox name="reset_run_time" inputId="reset_run_time" label={getLabel("reset_run_time")} />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button type="button" onClick={() => props.onHide()}>
@@ -128,4 +143,4 @@ const AddOrEditGame = (props: AddOrEditGameProps) => {
   );
 };
 
-export default AddOrEditGame;
+export default EditGame;
