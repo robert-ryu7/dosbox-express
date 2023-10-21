@@ -93,12 +93,12 @@ const SettingsDialog = (props: SettingsDialogProps) => {
             </Select>
             <Checkbox
               name="confirmConfigChanges"
-              inputId="confirmConfigChanges"
+              id="confirmConfigChanges"
               label={getLabel("confirmConfigChanges")}
             />
             <Checkbox
               name="useRelativeConfigPathsWhenPossible"
-              inputId="useRelativeConfigPathsWhenPossible"
+              id="useRelativeConfigPathsWhenPossible"
               label={getLabel("useRelativeConfigPathsWhenPossible")}
             />
           </Outset>

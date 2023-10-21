@@ -3,18 +3,18 @@ import CheckboxBase from "../Checkbox";
 
 type CheckboxProps = {
   label?: string;
-  inputId: string;
+  id: string;
   name: string;
   className?: string;
   disabled?: boolean;
 };
 
-const Checkbox = ({ label, inputId, name, className, disabled }: CheckboxProps) => {
+const Checkbox = ({ label, id, name, className, disabled }: CheckboxProps) => {
   return (
     <Field
       type="checkbox"
       name={name}
-      id={inputId}
+      id={id}
       disabled={disabled}
       as={CheckboxBase}
       label={label}

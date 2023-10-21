@@ -47,7 +47,7 @@ const ToolsDialog = (props: ToolsDialogProps) => {
         <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">
           <OutsetHead>DOSBox runner</OutsetHead>
           <Input
-            inputId="params"
+            id="params"
             label="Command line parameters (optional)"
             placeholder="--list-glshaders"
             value={params}

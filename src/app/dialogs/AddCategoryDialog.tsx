@@ -40,7 +40,7 @@ const AddCategoryDialog = (props: AddCategoryDialogProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="name" inputId="name" label={getLabel("name")} placeholder="Name of the category" />
+            <Input name="name" id="name" label={getLabel("name")} placeholder="Name of the category" />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button onClick={props.onHide}>Cancel</Button>

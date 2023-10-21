@@ -4,7 +4,8 @@ import InputBase from "../Input";
 
 type InputProps = {
   label?: string;
-  inputId: string;
+  id: string;
+  componentId?: string;
   name: string;
   className?: string;
   disabled?: boolean;
@@ -12,13 +13,14 @@ type InputProps = {
   after?: JSX.Element;
 };
 
-const Input = ({ label, inputId, name, className, disabled, placeholder, after }: InputProps) => {
+const Input = ({ label, id, componentId, name, className, disabled, placeholder, after }: InputProps) => {
   const [field, meta] = useField(name);
 
   return (
     <InputBase
       className={clsx(meta.touched && meta.error && "error", className)}
-      inputId={inputId}
+      id={id}
+      componentId={componentId}
       label={label}
       disabled={disabled}
       placeholder={placeholder}

@@ -1,8 +1,8 @@
 import clsx from "clsx";
 
 type InputProps = JSX.HTMLAttributes<HTMLInputElement> & {
-  id?: string;
-  inputId: string;
+  id: string;
+  componentId?: string;
   label?: string;
   className?: string;
   after?: JSX.Element;
@@ -13,7 +13,7 @@ type InputProps = JSX.HTMLAttributes<HTMLInputElement> & {
 
 const Input = ({
   id,
-  inputId,
+  componentId,
   label,
   className,
   after,
@@ -30,10 +30,10 @@ const Input = ({
   );
 
   return (
-    <div id={id} className={finalClassName} style={style}>
-      {label && <label for={inputId}>{label}</label>}
+    <div id={componentId} className={finalClassName} style={style}>
+      {label && <label for={id}>{label}</label>}
       <div className="input__bottom">
-        <input type="text" spellcheck={false} id={inputId} {...rest} />
+        <input type="text" spellcheck={false} id={id} {...rest} />
         {after}
       </div>
     </div>

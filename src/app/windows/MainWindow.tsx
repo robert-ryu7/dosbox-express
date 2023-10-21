@@ -137,8 +137,8 @@ const MainWindow = () => {
   return (
     <>
       <Input
-        id="main-search"
-        inputId="search"
+        id="search"
+        componentId="main-search"
         placeholder="Search by title"
         padding="big"
         border="none"

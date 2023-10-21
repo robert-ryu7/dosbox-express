@@ -52,7 +52,7 @@ const CategoryCommentsBlock = (props: CategoryCommentsBlockProps) => {
         props.children(props.value)
       )}
       <Checkbox
-        inputId="showBaseCategoryComments"
+        id="showBaseCategoryComments"
         label="Show base category comments"
         checked={showBaseCategoryComments}
         onChange={handleCategoryTypeChange}
@@ -217,7 +217,7 @@ const ConfigDialog = (props: ConfigDialogProps) => {
                   <Input
                     style="flex: 1;"
                     name="setting_value"
-                    inputId="setting_value"
+                    id="setting_value"
                     disabled={!selection[1]}
                     placeholder={baseConfig.getCategorySetting(selection[0], selection[1])}
                     value={modifiedConfig.getCategorySetting(selection[0], selection[1]) ?? ""}
