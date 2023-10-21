@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import SelectBase from "../Select";
 import { useField } from "formik";
 import { ComponentChildren } from "preact";
+import SelectBase from "../Select";
 
 type SelectProps = {
   label?: string;

@@ -1,0 +1,10 @@
+{
+    "tauri": {
+      "bundle": {
+        "active": true,
+        "resources": [],
+        "targets": "appimage"
+      }
+    }
+  }
+  

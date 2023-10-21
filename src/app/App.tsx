@@ -1,16 +1,17 @@
-import { ComponentType, Fragment } from "preact";
+import { ComponentType } from "preact";
+import { useLayoutEffect, useState } from "preact/hooks";
+import * as api from "../common/api";
 import { PATH } from "../common/path";
-import Main from "./windows/Main";
-import runningGamesContext from "./contexts/runningGamesContext";
-import { invoke } from "@tauri-apps/api";
-import { useState, useLayoutEffect } from "preact/hooks";
-import runningGamesChangedSubscription from "../subscription/runningGamesChangedSubscription";
+import errorSubscription from "../common/subscriptions/errorSubscription";
+import runningGamesChangedSubscription from "../common/subscriptions/runningGamesChangedSubscription";
 import runnerContext from "./contexts/runnerContext";
-import Styles from "./Styles";
+import runningGamesContext from "./contexts/runningGamesContext";
 import SettingsProvider from "./SettingsProvider";
+import Styles from "./Styles";
+import MainWindow from "./windows/MainWindow";
 
 const windows: Record<string, ComponentType> = {
-  "": Main,
+  "": MainWindow,
 };
 
 function App() {
@@ -18,21 +19,35 @@ function App() {
   if (!Window) throw new Error("Invalid path.");
 
   const runnerContextValue = useState<boolean>(false);
-  const [runningGames, setRunningGames] = useState<number[]>();
+  const [runningGamesContextValue, setRunningGamesContextValue] = useState<number[]>();
 
   useLayoutEffect(() => {
-    invoke<number[]>("get_running_games").then(setRunningGames);
+    api.getRunningGames().then(setRunningGamesContextValue).catch(api.error);
 
-    return runningGamesChangedSubscription.subscribe(setRunningGames);
+    return runningGamesChangedSubscription.subscribe(setRunningGamesContextValue);
   }, []);
 
-  if (runningGames === undefined) return null;
+  useLayoutEffect(() => {
+    return errorSubscription.subscribe(async (error) => {
+      await api.error(error);
+      if (api.isAppError(error) && error.type === "GameRunFailed") {
+        try {
+          const runningGames = await api.getRunningGames();
+          setRunningGamesContextValue(runningGames);
+        } catch (error) {
+          await api.error(error);
+        }
+      }
+    });
+  }, []);
+
+  if (runningGamesContextValue === undefined) return null;
 
   return (
     <SettingsProvider>
       <Styles />
       <runnerContext.Provider value={runnerContextValue}>
-        <runningGamesContext.Provider value={runningGames}>
+        <runningGamesContext.Provider value={runningGamesContextValue}>
           <Window />
         </runningGamesContext.Provider>
       </runnerContext.Provider>

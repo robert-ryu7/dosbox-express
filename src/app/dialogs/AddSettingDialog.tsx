@@ -1,13 +1,12 @@
-import { useFormik, FormikContext } from "formik";
+import { FormikContext, useFormik } from "formik";
 import * as Yup from "yup";
 
-import Button from "../../components/Button";
-import Input from "../../components/formik/Input";
-import { useEffect } from "preact/hooks";
-import Dialog from "../../components/Dialog";
-import Outset from "../../components/Outset";
-import Form from "../../components/formik/Form";
 import getLabelBase from "../../common/getLabel";
+import Button from "../../components/Button";
+import Dialog from "../../components/Dialog";
+import Form from "../../components/formik/Form";
+import Input from "../../components/formik/Input";
+import Outset from "../../components/Outset";
 
 type Values = {
   name: string;
@@ -23,13 +22,12 @@ const SCHEMA: Yup.ObjectSchema<Values> = Yup.object({
 
 const getLabel = getLabelBase.bind(null, SCHEMA);
 
-type AddCategoryProps = {
-  show: boolean;
+type AddSettingDialogProps = {
   onHide: () => void;
-  onSubmit: (values: Values) => Promise<void>;
+  onSubmit: (values: Values) => void;
 };
 
-const AddCategory = (props: AddCategoryProps) => {
+const AddSettingDialog = (props: AddSettingDialogProps) => {
   const formik = useFormik<Values>({
     initialValues: INITIAL_VALUES,
     validationSchema: SCHEMA,
@@ -37,21 +35,15 @@ const AddCategory = (props: AddCategoryProps) => {
     onSubmit: props.onSubmit,
   });
 
-  useEffect(() => {
-    if (props.show) formik.resetForm();
-  }, [props.show]);
-
   return (
-    <Dialog show={props.show} onHide={props.onHide}>
+    <Dialog show onHide={props.onHide}>
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="name" inputId="name" label={getLabel("name")} placeholder="Name of the category" />
+            <Input name="name" inputId="name" label={getLabel("name")} placeholder="Name of the setting" />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
-            <Button type="button" onClick={() => props.onHide()}>
-              Cancel
-            </Button>
+            <Button onClick={props.onHide}>Cancel</Button>
             <Button type="submit">OK</Button>
           </Outset>
         </Form>
@@ -60,4 +52,4 @@ const AddCategory = (props: AddCategoryProps) => {
   );
 };
 
-export default AddCategory;
+export default AddSettingDialog;

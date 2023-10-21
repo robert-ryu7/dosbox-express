@@ -1,5 +1,5 @@
-import { ComponentChildren } from "preact";
 import clsx from "clsx";
+import { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 type ListProps<I, K> = {

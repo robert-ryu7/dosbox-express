@@ -1,4 +1,6 @@
-import { Handler, Unsubscribe } from "./types";
+export type Handler<T> = (value: T) => void;
+
+export type Unsubscribe = () => void;
 
 class Subscription<T> {
   private _lastValue?: T;
@@ -19,7 +21,7 @@ class Subscription<T> {
   public dispatch(value: T) {
     this._lastValue = value;
     console.debug(`Subscription "${this.name}" is dispatching to ${this.handlers.length} handlers`);
-    for (var i = 0; i < this.handlers.length; i++) this.handlers[i].apply(null, [value]);
+    for (let i = 0; i < this.handlers.length; i++) this.handlers[i].apply(null, [value]);
   }
 
   public get lastValue() {

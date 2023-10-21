@@ -1,6 +1,6 @@
-import { message } from "@tauri-apps/api/dialog";
 import { useFormikContext } from "formik";
 import { ComponentChildren } from "preact";
+import * as api from "../../common/api";
 import { N } from "../../common/constants";
 
 type FormProps = {
@@ -11,23 +11,19 @@ type FormProps = {
 const Form = (props: FormProps) => {
   const formik = useFormikContext();
 
-  return (
-    <form
-      autoComplete="off"
-      onReset={formik.handleReset}
-      onSubmit={(e?: any) => {
-        if (!formik.isValid) {
-          let text = ["Cannot continue due to errors:"]
-            .concat(...Object.values(formik.errors).map((error) => `• ${error}`))
-            .join(N);
+  const handleSubmit = async (e?: unknown) => {
+    if (!formik.isValid) {
+      const text = ["Cannot continue due to errors:"]
+        .concat(...Object.values(formik.errors).map((error) => `• ${String(error)}`))
+        .join(N);
 
-          message(text, { type: "error" });
-        }
-        formik.handleSubmit(e);
-      }}
-      action="#"
-      style={props.style}
-    >
+      await api.error(text);
+    }
+    formik.handleSubmit(e);
+  };
+
+  return (
+    <form autoComplete="off" onReset={formik.handleReset} onSubmit={handleSubmit} action="#" style={props.style}>
       {props.children}
     </form>
   );

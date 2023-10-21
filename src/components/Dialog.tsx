@@ -1,4 +1,4 @@
-import { Ref, ComponentChildren } from "preact";
+import { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 type DialogProps = {
@@ -11,9 +11,9 @@ const Dialog = (props: DialogProps) => {
   const elementRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    elementRef.current?.addEventListener("close", props.onHide);
-
-    return () => elementRef.current?.removeEventListener("close", props.onHide);
+    const element = elementRef.current;
+    element?.addEventListener("close", props.onHide);
+    return () => element?.removeEventListener("close", props.onHide);
   }, [props.onHide]);
 
   useEffect(() => {

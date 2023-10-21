@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Storage from "./Storage";
 
 class LocalStorage<T> extends Storage<T | null> {

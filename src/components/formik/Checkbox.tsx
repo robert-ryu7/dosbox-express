@@ -1,5 +1,5 @@
-import CheckboxBase from "../Checkbox";
 import { Field } from "formik";
+import CheckboxBase from "../Checkbox";
 
 type CheckboxProps = {
   label?: string;

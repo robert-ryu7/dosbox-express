@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "dosbox-express",
-    "version": "0.0.0"
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
@@ -23,20 +23,13 @@
       "path": {
         "all": true
       },
-      "fs": {
-        "readDir": true,
-        "readFile": true,
-        "writeFile": true,
-        "exists": true,
-        "scope": ["$RESOURCE/settings.json", "$RESOURCE/base.conf", "$RESOURCE/themes", "$RESOURCE/themes/*.css"]
-      },
       "process": {
         "exit": true
       }
     },
     "bundle": {
-      "active": true,
-      "category": "DeveloperTool",
+      "active": false,
+      "category": "Entertainment",
       "copyright": "",
       "deb": {
         "depends": []
@@ -58,12 +51,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [
-        "dosbox",
-        "games",
-        "themes",
-        "sqlite3.dll"
-      ],
+      "resources": [],
       "shortDescription": "",
       "targets": "all",
       "windows": {

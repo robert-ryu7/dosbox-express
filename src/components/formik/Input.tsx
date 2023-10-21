@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import InputBase from "../Input";
 import { useField } from "formik";
+import InputBase from "../Input";
 
 type InputProps = {
   label?: string;

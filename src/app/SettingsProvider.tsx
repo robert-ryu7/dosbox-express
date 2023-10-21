@@ -1,15 +1,11 @@
-import useSWR from "swr";
 import { ComponentChildren, createContext } from "preact";
-import { readTextFile, exists, writeTextFile, BaseDirectory } from "@tauri-apps/api/fs";
-import { exit } from "@tauri-apps/api/process";
-import { message } from "@tauri-apps/api/dialog";
-import * as Yup from "yup";
-import { Settings } from "../types";
 import { useContext, useEffect, useMemo } from "preact/hooks";
+import useSWR from "swr";
+import * as Yup from "yup";
+import * as api from "../common/api";
+import { Settings } from "../types";
 
-const FILE_PATH = "settings.json";
-
-const SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
+const SCHEMA: Yup.ObjectSchema<Settings, Yup.AnyObject, Settings> = Yup.object({
   confirmConfigChanges: Yup.bool().defined().default(true),
   useRelativeConfigPathsWhenPossible: Yup.bool().defined().default(true),
   theme: Yup.string().optional().default(""),
@@ -18,30 +14,30 @@ const SCHEMA: Yup.ObjectSchema<Settings> = Yup.object({
   showBaseCategoryCommentsByDefault: Yup.string().oneOf(["always", "never", "auto"]).optional().default("auto"),
 });
 
-const saveToFile = async (data: Settings): Promise<void> => {
+const saveToFile = async (data: Settings): Promise<Settings> => {
   try {
     const rawData = JSON.stringify(data, null, 2);
-    await writeTextFile(FILE_PATH, rawData, { dir: BaseDirectory.Resource });
-  } catch (err: unknown) {
-    throw new Error(`Failed to save settings (${err})`);
+    await api.setSettings(rawData);
+    return data;
+  } catch (error: unknown) {
+    throw new Error(`Failed to save settings (${String(error)})`);
   }
 };
 
-const loadFromFile = async (): Promise<Settings> => {
+const loadFromFile = async (): Promise<Settings | null> => {
   try {
-    const rawData = await readTextFile(FILE_PATH, { dir: BaseDirectory.Resource });
+    const rawData = await api.getSettings();
+    if (rawData === null) return null;
     return await SCHEMA.strict().validate(JSON.parse(rawData));
-  } catch (err: unknown) {
-    throw new Error(`Failed to load settings (${err})`);
+  } catch (error: unknown) {
+    throw new Error(`Failed to load settings (${String(error)})`);
   }
 };
 
 const fetcher = async () => {
-  if (!(await exists(FILE_PATH, { dir: BaseDirectory.Resource }))) {
-    await saveToFile(SCHEMA.getDefault());
-  }
-
-  return await loadFromFile();
+  const settings = await loadFromFile();
+  if (settings === null) return await saveToFile(SCHEMA.getDefault());
+  return settings;
 };
 
 type SettingsContextValue = { settings: Settings; setSettings: (settings: Settings) => Promise<void> };
@@ -51,6 +47,7 @@ const settingsContext = createContext<SettingsContextValue | undefined>(undefine
 type SettingsProviderProps = { children: ComponentChildren };
 
 const SettingsProvider = (props: SettingsProviderProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { data, error, isLoading, mutate } = useSWR("settings", fetcher);
 
   const value = useMemo<SettingsContextValue | undefined>(
@@ -62,11 +59,11 @@ const SettingsProvider = (props: SettingsProviderProps) => {
           await mutate(settings);
         },
       },
-    [data, mutate]
+    [data, mutate],
   );
 
   useEffect(() => {
-    if (error) message(String(error), { type: "error" }).then(() => exit(1));
+    if (error) void api.error(error).then(() => api.exit(1));
   }, [error]);
 
   if (!value || error || isLoading) return null;

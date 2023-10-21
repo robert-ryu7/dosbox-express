@@ -1,8 +1,6 @@
 import clsx from "clsx";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
-type DataTableItem = Record<string, unknown>;
-
 type DragState = {
   index: number;
   width: number;
@@ -10,14 +8,14 @@ type DragState = {
   offset: number;
 };
 
-export type DataTableColumn<T extends DataTableItem> = {
+export type DataTableColumn<T> = {
   key: string;
   heading: string;
   width: number;
-  formatter?: (item: T) => string;
+  formatter: (item: T) => string;
 };
 
-type DataTableProps<T extends DataTableItem, K> = {
+type DataTableProps<T, K> = {
   id?: string;
   columns: DataTableColumn<T>[];
   items: T[];
@@ -34,17 +32,17 @@ type DataTableProps<T extends DataTableItem, K> = {
 };
 
 const getGripPosition = (
-  columns: DataTableColumn<any>[],
+  columns: DataTableColumn<never>[],
   index: number,
   dragState: DragState | undefined,
-  minColumnWidth: number
+  minColumnWidth: number,
 ) =>
   columns.slice(0, index + 1).reduce((acc, column, index) => {
     const offset = dragState?.index === index ? dragState.offset : 0;
     return acc + Math.max(column.width + offset, minColumnWidth);
   }, 0);
 
-const DataTable = <T extends DataTableItem, K>({
+const DataTable = <T, K>({
   id,
   columns,
   items,
@@ -93,7 +91,6 @@ const DataTable = <T extends DataTableItem, K>({
   }, [rowHeight, overscan]);
 
   useLayoutEffect(() => {
-    const table = tableRef.current!;
     const moveCallback = (event: MouseEvent) =>
       setDragState((s) => {
         if (s !== undefined) {
@@ -102,7 +99,7 @@ const DataTable = <T extends DataTableItem, K>({
         }
         return s;
       });
-    const upCallback = (event: MouseEvent) => {
+    const upCallback = () => {
       setDragState((s) => {
         if (s !== undefined) {
           onColumnResize(s.index, Math.max(s.width + s.offset, minColumnWidth));
@@ -139,7 +136,7 @@ const DataTable = <T extends DataTableItem, K>({
           gridTemplateColumns: columns
             .map(
               (column, index) =>
-                `${Math.max(column.width + (dragState?.index === index ? dragState.offset : 0), minColumnWidth)}px`
+                `${Math.max(column.width + (dragState?.index === index ? dragState.offset : 0), minColumnWidth)}px`,
             )
             .concat("1fr")
             .join(" "),
@@ -166,7 +163,7 @@ const DataTable = <T extends DataTableItem, K>({
             items
               .slice(
                 Math.max(virtualizationParams.index, 0),
-                Math.max(virtualizationParams.index, 0) + virtualizationParams.count + 1
+                Math.max(virtualizationParams.index, 0) + virtualizationParams.count + 1,
               )
               .map((item, index) => {
                 const key = getItemKey(item);
@@ -176,7 +173,7 @@ const DataTable = <T extends DataTableItem, K>({
                     onClick={(event) => {
                       if (event.shiftKey) {
                         onSelection(
-                          selection.some((k) => k === key) ? selection.filter((k) => k !== key) : [...selection, key]
+                          selection.some((k) => k === key) ? selection.filter((k) => k !== key) : [...selection, key],
                         );
                       } else {
                         onSelection([key]);
@@ -191,7 +188,7 @@ const DataTable = <T extends DataTableItem, K>({
                     }
                     className={clsx(
                       "data-table__row",
-                      selection.some((id) => id === key) && "data-table__row--selected"
+                      selection.some((id) => id === key) && "data-table__row--selected",
                     )}
                     style={{
                       position: "absolute",
@@ -201,9 +198,7 @@ const DataTable = <T extends DataTableItem, K>({
                   >
                     {columns.map((column) => (
                       <div key={column.key} className="data-table__cell">
-                        <div className="data-table__cell-content">
-                          {column.formatter ? column.formatter(item) : String(item[column.key])}
-                        </div>
+                        <div className="data-table__cell-content">{column.formatter(item)}</div>
                       </div>
                     ))}
                     <div className="data-table__cell" />
@@ -215,7 +210,7 @@ const DataTable = <T extends DataTableItem, K>({
           {virtualizationParams &&
             columns.map((column, index) => (
               <div
-                key={column.key + "0"}
+                key={column.key}
                 className={clsx("data-table__grip", dragState?.index === index && "data-table__grip--gripping")}
                 onMouseDown={(event) =>
                   setDragState({

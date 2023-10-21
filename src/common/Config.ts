@@ -3,7 +3,10 @@ import { N } from "./constants";
 export class CategoryValue {
   private _settings: Map<string, string>;
 
-  constructor(private _comments: string = "", _settings: Iterable<readonly [string, string]> = []) {
+  constructor(
+    private _comments: string = "",
+    _settings: Iterable<readonly [string, string]> = [],
+  ) {
     this._settings = new Map(_settings);
   }
 
@@ -58,7 +61,7 @@ export class CategoryValue {
     let hasSettings = false;
     if (strict) {
       for (const setting of this._settings.values()) {
-        if (Boolean(setting)) {
+        if (setting) {
           hasSettings = true;
           continue;
         }
@@ -77,7 +80,7 @@ class Config {
   constructor(
     private _comments: string = "",
     private _autoexec: string = "",
-    _categories: Iterable<readonly [string, CategoryValue]> = []
+    _categories: Iterable<readonly [string, CategoryValue]> = [],
   ) {
     this._categories = new Map(_categories);
   }
@@ -86,14 +89,14 @@ class Config {
     new Config(
       this._comments,
       this._autoexec,
-      new Map(Array.from(this._categories.entries()).map(([key, value]) => [key, value.clone()]))
+      new Map(Array.from(this._categories.entries()).map(([key, value]) => [key, value.clone()])),
     );
 
   static parse(text: string): Config {
     const lines = text.replaceAll("\r\n", N).split(N);
     let categoryKey = "";
     let comments = "";
-    let autoexec: string[] = [];
+    const autoexec: string[] = [];
     const categories: Map<string, CategoryValue> = new Map();
     for (const line of lines) {
       if (line.startsWith("[") && line.endsWith("]")) {
@@ -138,7 +141,7 @@ class Config {
       const categoryComments = config.getCategoryComments(categoryKey);
       const categoryEntries = config.getCategoryEntries(categoryKey);
 
-      result += `[${categoryKey}]` + N;
+      result += `[${categoryKey}]${N}`;
 
       if (categoryComments) {
         result += categoryComments
@@ -151,14 +154,14 @@ class Config {
       if (categoryEntries) {
         const padding = categoryEntries.reduce((acc, [key]) => Math.max(acc, key.length), 0);
         for (const [key, value] of categoryEntries) {
-          result += `${key.padEnd(padding)} = ${value}` + N;
+          result += `${key.padEnd(padding)} = ${value}${N}`;
         }
       }
 
       result += N;
     }
 
-    result += "[autoexec]" + N;
+    result += `[autoexec]${N}`;
     result += config.autoexec;
 
     return result.replaceAll(N, "\r\n");

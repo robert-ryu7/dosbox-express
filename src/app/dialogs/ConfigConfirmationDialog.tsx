@@ -1,19 +1,19 @@
-import Button from "../../components/Button";
-import Dialog from "../../components/Dialog";
-import Outset from "../../components/Outset";
 import { diffLines } from "diff";
 import { useEffect, useMemo, useRef } from "preact/hooks";
+import Button from "../../components/Button";
+import Dialog from "../../components/Dialog";
 import Inset from "../../components/Inset";
+import Outset from "../../components/Outset";
 import OutsetHead from "../../components/OutsetHead";
 
-type ConfigChangesConfirmationProps = {
+type ConfigConfirmationDialogProps = {
   left: string;
   right: string;
   onHide: () => void;
-  onConfirm: () => void;
+  onConfirm: (right: string) => void;
 };
 
-const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
+const ConfigConfirmationDialog = (props: ConfigConfirmationDialogProps) => {
   const diffRef = useRef<HTMLDivElement>(null);
   const diff = useMemo(() => diffLines(props.left, props.right), [props.left, props.right]);
 
@@ -24,6 +24,10 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
       element.scrollIntoView({ block: "center" });
     }
   }, [diff]);
+
+  const handleOk = () => {
+    props.onConfirm(props.right);
+  };
 
   return (
     <Dialog show onHide={props.onHide}>
@@ -60,12 +64,8 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
             {`${diff.filter((part) => part.removed).reduce((acc, part) => acc + (part.count ?? 0), 0)} line(s) removed`}
           </div>
           <div style="flex: 0 0 auto; display: flex; gap: 2px;">
-            <Button type="button" onClick={() => props.onHide()}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={props.onConfirm}>
-              OK
-            </Button>
+            <Button onClick={props.onHide}>Cancel</Button>
+            <Button onClick={handleOk}>OK</Button>
           </div>
         </Outset>
       </div>
@@ -73,4 +73,4 @@ const ConfigChangesConfirmation = (props: ConfigChangesConfirmationProps) => {
   );
 };
 
-export default ConfigChangesConfirmation;
+export default ConfigConfirmationDialog;

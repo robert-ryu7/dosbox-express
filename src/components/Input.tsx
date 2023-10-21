@@ -26,7 +26,7 @@ const Input = ({
     "input",
     border === "none" && "input--border-none",
     padding === "big" && "input--padding-big",
-    className
+    className,
   );
 
   return (

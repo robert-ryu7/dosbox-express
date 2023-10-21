@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import TextAreaBase from "../TextArea";
 import { useField } from "formik";
+import TextAreaBase from "../TextArea";
 
 type TextAreaProps = {
   label?: string;
