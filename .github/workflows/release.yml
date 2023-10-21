@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-22.04, windows-latest]
+        platform: [ubuntu-22.04, windows-2022]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -51,9 +51,24 @@ jobs:
       - name: Build the app
         run: pnpm run tauri build
 
-      - name: Rename executable (windows only)
-        if: matrix.platform == 'windows-latest'
-        run: node scripts/rename-windows-exe.cjs
+      - name: Create package (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          mkdir release
+          cp src-tauri/target/release/bundle/appimage/*.AppImage release
+          cp LICENSE.txt release
+          cp -r static/. release
+          cd release
+          tar -czvf ../dosbox-express_${{ github.ref_name }}_linux.tar.gz *
+
+      - name: Create package (windows only)
+        if: matrix.platform == 'windows-2022'
+        run: |
+          mkdir release
+          copy "src-tauri\target\release\dosbox-express.exe" release
+          copy LICENSE.txt release
+          xcopy /s static release
+          Compress-Archive release\* dosbox-express_${{ github.ref_name }}_windows.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -61,5 +76,5 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/*.exe
+            dosbox-express_${{ github.ref_name }}_linux.tar.gz
+            dosbox-express_${{ github.ref_name }}_windows.zip

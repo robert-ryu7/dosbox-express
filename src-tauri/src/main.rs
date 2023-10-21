@@ -5,6 +5,7 @@
 
 mod common;
 
+#[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
 use common::{
@@ -158,16 +159,17 @@ async fn run_game(
     let base_conf_path = common::path::base_config_file()?;
     let dosbox_exe_path = common::path::dosbox_exe_file()?;
 
-    let child = shell!(
-        r#""{}" "{}" -conf "{}" -conf "{}""#,
-        dosbox_exe_path.display(),
-        mount_path.display(),
-        base_conf_path.display(),
-        config_path.display()
-    )
-    .current_dir(mount_path)
-    .stderr(std::process::Stdio::piped())
-    .spawn()?;
+    let child = std::process::Command::new(dosbox_exe_path)
+        .arg(mount_path)
+        .arg("-noconsole")
+        .arg("-exit")
+        .arg("-conf")
+        .arg(base_conf_path)
+        .arg("-conf")
+        .arg(&config_path)
+        .current_dir(mount_path)
+        .stderr(std::process::Stdio::piped())
+        .spawn()?;
 
     std::thread::spawn(move || -> () {
         let result = || -> AppResult<Output> {

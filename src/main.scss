@@ -21,6 +21,7 @@
   --color-scrollbar: #a6d5fd;
   --color-input-placeholder: #9690b3;
   --color-input-disabled-bg: #464354;
+  --color-link: #22ddff;
 
   --font-family: "Ubuntu Mono", monospace;
 }
@@ -78,6 +79,17 @@ body {
 
 ::-webkit-scrollbar-thumb:corner-present:vertical {
   border-width: 2px 2px 0 2px;
+}
+
+// Link
+.link {
+  color: var(--color-link);
+}
+
+.link:focus {
+  outline: 1px dotted var(--color-front);
+  outline-offset: 1px;
+  z-index: 1;
 }
 
 // Button

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "pnpm dlx cpy-cli \"./\" \"../../src-tauri/target/debug\" --cwd=\"./debug\" && tauri dev",
+    "start": "pnpm dlx cpy-cli \"./\" \"../../src-tauri/target/debug\" --cwd=\"./static\" && pnpm dlx cpy-cli \"./\" \"../../src-tauri/target/debug\" --cwd=\"./debug\" && tauri dev",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",

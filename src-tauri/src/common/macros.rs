@@ -7,7 +7,7 @@ macro_rules! shell {
 }
 
 #[macro_export]
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "windows")]
 macro_rules! shell {
     ($($arg:tt)*) => {{
         let cmd = format!($($arg)*);

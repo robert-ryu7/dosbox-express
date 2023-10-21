@@ -1,3 +1,5 @@
+import { getName, getVersion } from "@tauri-apps/api/app";
+import { arch } from "@tauri-apps/api/os";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import * as api from "../../common/api";
@@ -15,6 +17,7 @@ import { useRunningGames } from "../contexts/runningGamesContext";
 import AddGameDialog from "../dialogs/AddGameDialog";
 import ConfigDialog from "../dialogs/ConfigDialog";
 import EditGameDialog from "../dialogs/EditGameDialog";
+import InfoDialog from "../dialogs/InfoDialog";
 import SettingsDialog from "../dialogs/SettingsDialog";
 import ToolsDialog from "../dialogs/ToolsDialog";
 
@@ -24,6 +27,7 @@ const MainWindow = () => {
   const [search, setSearch] = useState<string>("");
   const debouncedSearch = useDebounce(search, 300);
   const runningGames = useRunningGames();
+  const [infoDialog, setInfoDialog] = useState<{ appName: string; appVersion: string; archName: string } | null>(null);
   const [settingsDialog, setSettingsDialog] = useState<{ themes: string[] } | null>(null);
   const [toolsDialog, setToolsDialog] = useState<boolean>(false);
   const [addGameDialog, setAddGameDialog] = useState<boolean>(false);
@@ -134,6 +138,17 @@ const MainWindow = () => {
     }
   };
 
+  const handleInfo = async () => {
+    try {
+      const appName = await getName();
+      const appVersion = await getVersion();
+      const archName = await arch();
+      setInfoDialog({ appName, appVersion, archName });
+    } catch (error) {
+      await api.error(error);
+    }
+  };
+
   return (
     <>
       <Input
@@ -185,6 +200,7 @@ const MainWindow = () => {
           <Button onClick={() => setAddGameDialog(true)}>Add</Button>
           <Button onClick={() => setToolsDialog(true)}>Tools</Button>
           <Button onClick={handleSettings}>Settings</Button>
+          <Button onClick={handleInfo}>&#x2139;</Button>
         </div>
       </Outset>
       {settingsDialog && <SettingsDialog {...settingsDialog} onHide={() => setSettingsDialog(null)} />}
@@ -192,6 +208,7 @@ const MainWindow = () => {
       {addGameDialog && <AddGameDialog onHide={() => setAddGameDialog(false)} />}
       {editGameDialog && <EditGameDialog {...editGameDialog} onHide={() => setEditGameDialog(null)} />}
       {configGameDialog && <ConfigDialog {...configGameDialog} onHide={() => setConfigGameDialog(null)} />}
+      {infoDialog && <InfoDialog {...infoDialog} onHide={() => setInfoDialog(null)} />}
     </>
   );
 };

@@ -12,7 +12,7 @@ fn get_exe_path() -> AppResult<PathBuf> {
     Ok(exe_path)
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "windows")]
 fn get_exe_path() -> AppResult<PathBuf> {
     let exe_path = tauri::utils::platform::current_exe()?;
 
@@ -47,8 +47,11 @@ pub fn base_config_file() -> AppResult<PathBuf> {
         let dosbox_exe_path = dosbox_exe_file()?;
         std::process::Command::new(dosbox_exe_path)
             .args([
+                "-noconsole",
                 "-c",
                 &format!("CONFIG -writeconf \"{}\"", base_conf_path.to_string_lossy()),
+                "-c",
+                "EXIT",
                 "-exit",
             ])
             .output()?;
@@ -76,7 +79,7 @@ pub fn dosbox_exe_file() -> AppResult<PathBuf> {
     return Ok(dosbox_exe_path);
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "windows")]
 /// Get resolved path to DOSBox executable file. It checks for path existence.
 pub fn dosbox_exe_file() -> AppResult<PathBuf> {
     let dosbox_exe_path = resolve_relative_path("dosbox\\dosbox.exe")?;

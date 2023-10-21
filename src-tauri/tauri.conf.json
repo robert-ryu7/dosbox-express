@@ -25,12 +25,17 @@
       },
       "process": {
         "exit": true
+      },
+      "os": {
+        "all": true
       }
     },
     "bundle": {
       "active": false,
       "category": "Entertainment",
-      "copyright": "",
+      "shortDescription": "DOSBox frontend built using Tauri.",
+      "copyright": "Copyright © 2023 SolidDEV Robert Balcerowicz",
+      "publisher": "SolidDEV Robert Balcerowicz",
       "deb": {
         "depends": []
       },
@@ -43,7 +48,6 @@
         "icons/icon.ico"
       ],
       "identifier": "org.solid-dev.dosbox-express",
-      "longDescription": "",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -52,7 +56,6 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -61,7 +64,24 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": [
+          "'self'"
+        ],
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"
+        ],
+        "img-src": [
+          "'self'",
+          "data:"
+        ],
+        "font-src": [
+          "'self'",
+          "https://fonts.gstatic.com"
+        ]
+      }
     },
     "updater": {
       "active": false
