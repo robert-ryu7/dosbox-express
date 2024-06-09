@@ -8,6 +8,7 @@ import gamesChangedSubscription from "../../common/subscriptions/gamesChangedSub
 import Button from "../../components/Button";
 import DataTable, { DataTableColumn } from "../../components/DataTable";
 import Divider from "../../components/Divider";
+import Error from "../../components/Error";
 import Input from "../../components/Input";
 import Outset from "../../components/Outset";
 import useStorage from "../../hooks/useStorage";
@@ -33,10 +34,10 @@ const MainWindow = () => {
   const [addGameDialog, setAddGameDialog] = useState<boolean>(false);
   const [editGameDialog, setEditGameDialog] = useState<Game | null>(null);
   const [configGameDialog, setConfigGameDialog] = useState<{ id: number; cfg: string; baseCfg: string } | null>(null);
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<api.ExtendedGame[]>([]);
   const [selection, setSelection] = useState<number[]>([]);
   const columnsConfig = useStorage(mainColumnsStorage);
-  const columns = useMemo<DataTableColumn<Game>[]>(
+  const columns = useMemo<DataTableColumn<api.ExtendedGame>[]>(
     () => [
       { key: "id", heading: "#", width: 30, formatter: (game) => String(game.id), ...columnsConfig?.id },
       { key: "title", heading: "Title", width: 180, formatter: (game) => game.title, ...columnsConfig?.title },
@@ -56,6 +57,19 @@ const MainWindow = () => {
         width: 320,
         formatter: (game) => game.config_path,
         ...columnsConfig?.config_path,
+      },
+      {
+        key: "addons",
+        heading: "Addons",
+        width: 320,
+        formatter: (game) => {
+          if (game.addons.success) {
+            return game.addons.data.map((addon) => addon.title).join(", ");
+          }
+
+          return <Error>Malformed data</Error>;
+        },
+        ...columnsConfig?.addons,
       },
     ],
     [columnsConfig],

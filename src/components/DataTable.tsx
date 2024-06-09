@@ -12,7 +12,7 @@ export type DataTableColumn<T> = {
   key: string;
   heading: string;
   width: number;
-  formatter: (item: T) => string;
+  formatter: (item: T) => string | JSX.Element;
 };
 
 type DataTableProps<T, K> = {

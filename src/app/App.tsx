@@ -16,7 +16,7 @@ const windows: Record<string, ComponentType> = {
 
 function App() {
   const Window = Object.entries(windows).find(([key]) => key === PATH[0])?.[1];
-  if (!Window) throw new Error("Invalid path.");
+  if (!Window) throw new Error("Invalid path");
 
   const runnerContextValue = useState<boolean>(false);
   const [runningGamesContextValue, setRunningGamesContextValue] = useState<number[]>();

@@ -4,6 +4,7 @@
   --color-back-brighter: #04579f;
   --color-front: #ffffff;
   --color-front-alt: #5f95dd;
+  --color-front-error: #ff0000;
   --color-primary: #2e5486;
   --color-primary-bright: #5f95dd;
   --color-primary-dark: #1e3757;
@@ -271,8 +272,8 @@ body {
   color: var(--color-input-placeholder);
 }
 
-.input.error input:not(:focus) {
-  outline: 1px dotted red;
+.input.has-error input:not(:focus) {
+  outline: 1px dotted var(--color-front-error);
 }
 
 .input--border-none input {
@@ -329,8 +330,8 @@ body {
   background: var(--color-input-disabled-bg);
 }
 
-.select.error select:not(:focus) {
-  outline: 1px dotted red;
+.select.has-error select:not(:focus) {
+  outline: 1px dotted var(--color-front-error);
 }
 
 // Dialog
@@ -453,8 +454,8 @@ body {
   white-space: pre;
 }
 
-.text-area.error textarea:not(:focus) {
-  outline: 1px dotted red;
+.text-area.has-error textarea:not(:focus) {
+  outline: 1px dotted var(--color-front-error);
 }
 
 // Divider
@@ -580,4 +581,11 @@ body {
 
 #main-toolbar-separator {
   display: none;
+}
+
+// Error
+
+.error {
+  font-weight: bold;
+  color: var(--color-front-error);
 }

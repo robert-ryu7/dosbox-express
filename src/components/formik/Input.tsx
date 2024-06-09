@@ -19,7 +19,7 @@ const Input = ({ label, componentId, name, className, disabled, placeholder, aft
 
   return (
     <InputBase
-      className={clsx(meta.touched && meta.error && "error", className)}
+      className={clsx(meta.touched && meta.error && "has-error", className)}
       id={id}
       componentId={componentId}
       label={label}

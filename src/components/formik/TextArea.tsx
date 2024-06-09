@@ -19,7 +19,7 @@ const TextArea = ({ label, name, className, disabled, placeholder, after, rows }
 
   return (
     <TextAreaBase
-      className={clsx(meta.touched && meta.error && "error", className)}
+      className={clsx(meta.touched && meta.error && "has-error", className)}
       textareaId={id}
       label={label}
       disabled={disabled}

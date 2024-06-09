@@ -20,7 +20,7 @@ const Select = ({ label, name, className, disabled, after, autoFocus, children }
 
   return (
     <SelectBase
-      className={clsx(meta.touched && meta.error && "error", className)}
+      className={clsx(meta.touched && meta.error && "has-error", className)}
       selectId={id}
       label={label}
       disabled={disabled}
