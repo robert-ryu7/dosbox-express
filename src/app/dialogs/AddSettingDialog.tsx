@@ -40,7 +40,7 @@ const AddSettingDialog = (props: AddSettingDialogProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="name" id="name" label={getLabel("name")} placeholder="Name of the setting" />
+            <Input name="name" label={getLabel("name")} placeholder="Name of the setting" />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button onClick={props.onHide}>Cancel</Button>

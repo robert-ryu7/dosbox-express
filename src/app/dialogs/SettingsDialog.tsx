@@ -3,12 +3,12 @@ import * as Yup from "yup";
 import getLabelBase from "../../common/getLabel";
 import Button from "../../components/Button";
 import Dialog from "../../components/Dialog";
+import Outset from "../../components/Outset";
+import OutsetHead from "../../components/OutsetHead";
 import Checkbox from "../../components/formik/Checkbox";
 import Form from "../../components/formik/Form";
 import Select from "../../components/formik/Select";
 import TextArea from "../../components/formik/TextArea";
-import Outset from "../../components/Outset";
-import OutsetHead from "../../components/OutsetHead";
 import { Settings as Values } from "../../types";
 import { useSettings } from "../SettingsProvider";
 
@@ -55,7 +55,7 @@ const SettingsDialog = (props: SettingsDialogProps) => {
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Visuals</OutsetHead>
-            <Select name="theme" selectId="theme" label={getLabel("theme")}>
+            <Select name="theme" label={getLabel("theme")}>
               <option value="">Default</option>
               {props.themes?.map((theme) => (
                 <option key={theme} value={theme}>
@@ -66,39 +66,25 @@ const SettingsDialog = (props: SettingsDialogProps) => {
             <TextArea
               rows={6}
               name="inlineCss"
-              id="inlineCss"
               label={getLabel("inlineCss")}
               placeholder={`dialog {\n  opacity: 0.5;\n}\n`}
             />
           </Outset>
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
             <OutsetHead>Miscellaneous</OutsetHead>
-            <Select
-              name="saveEmptyConfigValues"
-              selectId="saveEmptyConfigValues"
-              label={getLabel("saveEmptyConfigValues")}
-            >
+            <Select name="saveEmptyConfigValues" label={getLabel("saveEmptyConfigValues")}>
               <option value="none">Don't save empty categories or settings</option>
               <option value="settings">Don't save empty categories but save empty settings</option>
               <option value="all">Save all empty values</option>
             </Select>
-            <Select
-              name="showBaseCategoryCommentsByDefault"
-              selectId="showBaseCategoryCommentsByDefault"
-              label={getLabel("showBaseCategoryCommentsByDefault")}
-            >
+            <Select name="showBaseCategoryCommentsByDefault" label={getLabel("showBaseCategoryCommentsByDefault")}>
               <option value="always">Always show base category comments</option>
               <option value="never">Always show category comments</option>
               <option value="auto">Show category comments only when not empty</option>
             </Select>
-            <Checkbox
-              name="confirmConfigChanges"
-              id="confirmConfigChanges"
-              label={getLabel("confirmConfigChanges")}
-            />
+            <Checkbox name="confirmConfigChanges" label={getLabel("confirmConfigChanges")} />
             <Checkbox
               name="useRelativeConfigPathsWhenPossible"
-              id="useRelativeConfigPathsWhenPossible"
               label={getLabel("useRelativeConfigPathsWhenPossible")}
             />
           </Outset>

@@ -1,15 +1,17 @@
 import { Field } from "formik";
+import { useId } from "preact/hooks";
 import CheckboxBase from "../Checkbox";
 
 type CheckboxProps = {
-  label?: string;
-  id: string;
   name: string;
+  label?: string;
   className?: string;
   disabled?: boolean;
 };
 
-const Checkbox = ({ label, id, name, className, disabled }: CheckboxProps) => {
+const Checkbox = ({ name, label, className, disabled }: CheckboxProps) => {
+  const id = useId();
+
   return (
     <Field
       type="checkbox"

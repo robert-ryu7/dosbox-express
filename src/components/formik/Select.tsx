@@ -1,11 +1,11 @@
 import clsx from "clsx";
 import { useField } from "formik";
 import { ComponentChildren } from "preact";
+import { useId } from "preact/hooks";
 import SelectBase from "../Select";
 
 type SelectProps = {
   label?: string;
-  selectId: string;
   name: string;
   className?: string;
   disabled?: boolean;
@@ -14,13 +14,14 @@ type SelectProps = {
   children: ComponentChildren;
 };
 
-const Select = ({ label, selectId, name, className, disabled, after, autoFocus, children }: SelectProps) => {
+const Select = ({ label, name, className, disabled, after, autoFocus, children }: SelectProps) => {
+  const id = useId();
   const [field, meta] = useField(name);
 
   return (
     <SelectBase
       className={clsx(meta.touched && meta.error && "error", className)}
-      selectId={selectId}
+      selectId={id}
       label={label}
       disabled={disabled}
       after={after}

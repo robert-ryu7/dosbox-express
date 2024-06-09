@@ -66,15 +66,14 @@ const EditGameDialog = (props: EditGameDialogProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="title" id="title" label={getLabel("title")} placeholder="Name of the game" />
+            <Input name="title" label={getLabel("title")} placeholder="Name of the game" />
             <Input
               name="configPath"
-              id="configPath"
               label={getLabel("configPath")}
               placeholder="Path to DOSBox config file"
               after={<Button onClick={handleSelect}>Select</Button>}
             />
-            <Checkbox name="resetRunTime" id="resetRunTime" label={getLabel("resetRunTime")} />
+            <Checkbox name="resetRunTime" label={getLabel("resetRunTime")} />
           </Outset>
           <Outset style="flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 2px;">
             <Button onClick={props.onHide}>Cancel</Button>

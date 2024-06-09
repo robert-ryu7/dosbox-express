@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import { useField } from "formik";
+import { useId } from "preact/hooks";
 import InputBase from "../Input";
 
 type InputProps = {
   label?: string;
-  id: string;
   componentId?: string;
   name: string;
   className?: string;
@@ -13,7 +13,8 @@ type InputProps = {
   after?: JSX.Element;
 };
 
-const Input = ({ label, id, componentId, name, className, disabled, placeholder, after }: InputProps) => {
+const Input = ({ label, componentId, name, className, disabled, placeholder, after }: InputProps) => {
+  const id = useId();
   const [field, meta] = useField(name);
 
   return (

@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import { useField } from "formik";
+import { useId } from "preact/hooks";
 import TextAreaBase from "../TextArea";
 
 type TextAreaProps = {
   label?: string;
-  id: string;
   name: string;
   className?: string;
   disabled?: boolean;
@@ -13,7 +13,8 @@ type TextAreaProps = {
   rows?: number;
 };
 
-const TextArea = ({ label, id, name, className, disabled, placeholder, after, rows }: TextAreaProps) => {
+const TextArea = ({ label, name, className, disabled, placeholder, after, rows }: TextAreaProps) => {
+  const id = useId();
   const [field, meta] = useField(name);
 
   return (

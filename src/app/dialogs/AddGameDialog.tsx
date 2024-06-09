@@ -55,10 +55,9 @@ const AddGameDialog = (props: AddGameDialogProps) => {
       <FormikContext.Provider value={formik}>
         <Form style="display: flex; flex-direction: column;">
           <Outset style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;">
-            <Input name="title" id="title" label={getLabel("title")} placeholder="Name of the game" />
+            <Input name="title" label={getLabel("title")} placeholder="Name of the game" />
             <Input
               name="config_path"
-              id="config_path"
               label={getLabel("config_path")}
               placeholder="Path to DOSBox config file"
               after={<Button onClick={handleSelect}>Select</Button>}

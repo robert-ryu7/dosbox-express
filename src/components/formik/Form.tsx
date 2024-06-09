@@ -11,15 +11,16 @@ type FormProps = {
 const Form = (props: FormProps) => {
   const formik = useFormikContext();
 
-  const handleSubmit = async (e?: unknown) => {
+  const handleSubmit: JSX.GenericEventHandler<HTMLFormElement> = async (event) => {
     if (!formik.isValid) {
+      event.preventDefault();
       const text = ["Cannot continue due to errors:"]
         .concat(...Object.values(formik.errors).map((error) => `• ${String(error)}`))
         .join(N);
 
       await api.error(text);
     }
-    formik.handleSubmit(e);
+    formik.handleSubmit(event);
   };
 
   return (
