@@ -1,0 +1,42 @@
+name: Build for Windows
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Pnpm Setup
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.9.0
+
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the app
+        run: pnpm run tauri build
+
+      - name: 'Upload binary'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dosbox-express
+          path: src-tauri\target\release\dosbox-express.exe
+          retention-days: 5
