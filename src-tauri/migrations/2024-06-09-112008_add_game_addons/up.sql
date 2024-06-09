@@ -1,0 +1,1 @@
+ALTER TABLE games ADD raw_addons VARCHAR NOT NULL DEFAULT '[]';

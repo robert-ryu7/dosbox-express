@@ -7,7 +7,7 @@ export type Settings = {
   showBaseCategoryCommentsByDefault: "always" | "never" | "auto";
 };
 
-export type Game = { id: number; title: string; config_path: string; run_time: number };
+export type Game = { id: number; title: string; config_path: string; run_time: number; raw_addons: string };
 
 export type NewGame = { title: string; config_path: string };
 

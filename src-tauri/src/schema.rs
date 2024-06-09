@@ -6,5 +6,6 @@ diesel::table! {
         title -> Text,
         config_path -> Text,
         run_time -> Integer,
+        raw_addons -> Text,
     }
 }

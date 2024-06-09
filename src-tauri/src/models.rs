@@ -8,6 +8,7 @@ pub struct Game {
     pub title: String,
     pub config_path: String,
     pub run_time: i32,
+    pub raw_addons: String,
 }
 
 #[derive(Insertable)]
