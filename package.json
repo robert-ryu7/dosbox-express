@@ -14,7 +14,7 @@
     "prettier": "prettier . --write"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.1.0",
+    "@tauri-apps/api": "^1.5.4",
     "@uidotdev/usehooks": "^2.1.0",
     "clsx": "^1.2.1",
     "diff": "^5.1.0",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@preact/preset-vite": "^2.3.0",
-    "@tauri-apps/cli": "^1.2.3",
+    "@tauri-apps/cli": "^1.5.11",
     "@types/diff": "^5.0.2",
     "@types/jest": "^29.5.4",
     "@types/node": "^18.7.14",
