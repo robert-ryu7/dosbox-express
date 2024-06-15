@@ -8,7 +8,7 @@ import gamesChangedSubscription from "../../common/subscriptions/gamesChangedSub
 import Button from "../../components/Button";
 import DataTable, { DataTableColumn } from "../../components/DataTable";
 import Divider from "../../components/Divider";
-import Error from "../../components/Error";
+import ErrorMessage from "../../components/ErrorMessage";
 import Input from "../../components/Input";
 import Outset from "../../components/Outset";
 import useStorage from "../../hooks/useStorage";
@@ -63,11 +63,11 @@ const MainWindow = () => {
         heading: "Addons",
         width: 320,
         formatter: (game) => {
-          if (game.addons.success) {
-            return game.addons.data.map((addon) => addon.title).join(", ");
+          if (game.addons) {
+            return game.addons.map((addon) => addon.title).join(", ");
           }
 
-          return <Error>Malformed data</Error>;
+          return <ErrorMessage>Invalid data</ErrorMessage>;
         },
         ...columnsConfig?.addons,
       },

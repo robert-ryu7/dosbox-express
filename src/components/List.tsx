@@ -1,20 +1,25 @@
 import clsx from "clsx";
 import { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
+import ErrorMessage from "./ErrorMessage";
+import InlineButton from "./InlineButton";
 
 type ListProps<I, K> = {
-  items: I[];
+  items: I[] | Error;
   selection: K | null;
   style?: string | JSX.CSSProperties;
   getKey: (item: I, index: number) => K;
   children: (item: I) => ComponentChildren;
   onSelect: (key: K | null) => void;
+  onErrorClear?: () => void;
 };
 
 const List = <I, K>(props: ListProps<I, K>) => {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const handleKeyDown: JSX.KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (props.items instanceof Error) return;
+
     if (props.items.length === 0) return;
 
     switch (event.code) {
@@ -56,21 +61,40 @@ const List = <I, K>(props: ListProps<I, K>) => {
   }, [props.selection]);
 
   return (
-    <div ref={rootRef} className="list" style={props.style} tabIndex={0} onKeyDown={handleKeyDown}>
-      {props.items.map((item, index) => {
-        const key = props.getKey(item, index);
+    <div
+      ref={rootRef}
+      className={clsx("list", props.items instanceof Error && "list--has-error")}
+      style={props.style}
+      tabIndex={props.items instanceof Error ? undefined : 0}
+      onKeyDown={handleKeyDown}
+    >
+      {props.items instanceof Error ? (
+        <ErrorMessage>
+          {props.items.message}
+          {props.onErrorClear && (
+            <>
+              <br />
+              <br />
+              <InlineButton onClick={props.onErrorClear}>Clear error</InlineButton>
+            </>
+          )}
+        </ErrorMessage>
+      ) : (
+        props.items.map((item, index) => {
+          const key = props.getKey(item, index);
 
-        return (
-          <div
-            data-key={key}
-            key={key}
-            className={clsx("list__item", props.selection === key && "list__item--selected")}
-            onClick={() => props.onSelect(key)}
-          >
-            {props.children(item)}
-          </div>
-        );
-      })}
+          return (
+            <div
+              data-key={key}
+              key={key}
+              className={clsx("list__item", props.selection === key && "list__item--selected")}
+              onClick={() => props.onSelect(key)}
+            >
+              {props.children(item)}
+            </div>
+          );
+        })
+      )}
     </div>
   );
 };

@@ -9,8 +9,6 @@ export type Settings = {
 
 export type Game = { id: number; title: string; config_path: string; run_time: number; raw_addons: string };
 
-export type NewGame = { title: string; config_path: string };
-
 export type AppError =
   | ({
       type: "IO";

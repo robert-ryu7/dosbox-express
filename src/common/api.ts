@@ -3,31 +3,21 @@ import { confirm, message, open } from "@tauri-apps/api/dialog";
 import { extname } from "@tauri-apps/api/path";
 import { exit } from "@tauri-apps/api/process";
 import * as Yup from "yup";
-import { z } from "zod";
 import { AppError, Game } from "../types";
 
 const APP_ERROR_SCHEMA: Yup.ObjectSchema<{ type: string }> = Yup.object({
   type: Yup.string().required(),
 });
 
-const ADDON_SCHEMA = z.object({
-  type: z.literal("override"),
-  title: z.string(),
-  config_path: z.string(),
+export const ADDON_SCHEMA = Yup.object({
+  type: Yup.string().oneOf(["override"]).required(),
+  title: Yup.string().required(),
+  config_path: Yup.string().required(),
 });
 
-export type Addon = z.infer<typeof ADDON_SCHEMA>;
+export type Addon = Yup.InferType<typeof ADDON_SCHEMA>;
 
-export type ExtendedGame = Game & { addons: z.SafeParseReturnType<string, Addon[]> };
-
-const ADDONS_SCHEMA = z
-  .string()
-  .transform((val) => {
-    try {
-      return JSON.parse(val) as unknown;
-    } catch {}
-  })
-  .pipe(ADDON_SCHEMA.array());
+export type ExtendedGame = Game & { addons: Addon[] | null };
 
 export { confirm, exit };
 
@@ -94,7 +84,19 @@ export const getBaseConfig = () => invoke<string>("get_base_config");
 export const getGames = async (search?: string): Promise<ExtendedGame[]> => {
   const games = await invoke<Game[]>("get_games", { search });
 
-  return games.map((game) => ({ ...game, addons: ADDONS_SCHEMA.safeParse(game.raw_addons) }));
+  return games.map((game, index) => {
+    let addons: Addon[] | null;
+    try {
+      addons = Yup.array(ADDON_SCHEMA).json().required().validateSync(game.raw_addons);
+    } catch (cause) {
+      const error = new Error(`Validation failed for Game#${index + 1}`);
+      error.cause = cause;
+      console.error(error);
+      addons = null;
+    }
+
+    return { ...game, addons };
+  });
 };
 
 export const getSettings = () => invoke<string | null>("get_settings");

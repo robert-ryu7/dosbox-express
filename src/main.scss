@@ -394,6 +394,8 @@ body {
   background: var(--color-back-bright);
   overflow: auto;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .list:focus {
@@ -406,10 +408,17 @@ body {
   overflow: hidden;
   padding: 4px 8px;
   cursor: pointer;
+  flex: 0 0 auto;
 
   &--selected {
     background: var(--color-back-brighter);
   }
+}
+
+.list--has-error {
+  text-align: center;
+  align-items: center;
+  justify-content: center;
 }
 
 // TextArea
@@ -583,9 +592,26 @@ body {
   display: none;
 }
 
-// Error
+// ErrorMessage
 
-.error {
-  font-weight: bold;
+.error-message {
   color: var(--color-front-error);
+}
+
+// InlineButton
+
+.inline-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.inline-button:focus {
+  outline: 1px dotted var(--color-front);
+  outline-offset: 1px;
+  z-index: 1;
 }
